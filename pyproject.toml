@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "pmhn"
+version = "0.1.0"
+description = ""
+authors = ["Computational Biology Group"]
+readme = "README.md"
+packages = [{include = "pmhn", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+ruff = "^0.0.253"
+black = "^23.1.0"
+pytest-cov = "^4.0.0"
+pytest-xdist = "^3.2.0"
+pre-commit = "^3.1.0"
+pyright = "^1.1.296"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
