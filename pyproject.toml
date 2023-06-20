@@ -8,6 +8,7 @@ packages = [{include = "pmhn", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+numpy = "^1.25.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
@@ -21,3 +22,7 @@ pyright = "^1.1.296"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+
