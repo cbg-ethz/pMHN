@@ -1,4 +1,4 @@
-from typing import cast, Callable
+from typing import cast, Callable, Protocol
 
 import mhn
 import numpy as np
@@ -27,37 +27,47 @@ def _cast_mutations(mutations: np.ndarray) -> np.ndarray:
     return np.asarray(mutations, dtype=np.int32)
 
 
-def calculate_with_joblib(
-    mutations: np.ndarray, theta: np.ndarray, n_jobs: int = DEFAULT_N_JOBS
-) -> tuple[np.ndarray, float]:
-    theta = _cast_theta(theta)
-    mutations = _cast_mutations(mutations)
-
-    fn = _get_function_for_theta(theta)
-
-    grads_and_scores = joblib.Parallel(n_jobs=n_jobs)(
-        joblib.delayed(fn)(state) for state in mutations
-    )
-    grads_and_scores = cast(list, grads_and_scores)
-
-    grads = [x[0] for x in grads_and_scores]
-    scores = [x[1] for x in grads_and_scores]
-
-    return np.sum(grads, axis=0), np.sum(scores)
+class _Backend(Protocol):
+    def gradient_and_loglikelihood(
+        self, mutations: np.ndarray, theta: np.ndarray
+    ) -> tuple[np.ndarray, float]:
+        ...
 
 
-def calculate_joint(
-    mutations: np.ndarray,
-    theta: np.ndarray,
-) -> tuple[np.ndarray, float]:
-    theta = _cast_theta(theta)
-    mutations = _cast_mutations(mutations)
+class JoblibBackend(_Backend):
+    def __init__(self, n_jobs: int = DEFAULT_N_JOBS) -> None:
+        self._pool = joblib.Parallel(n_jobs=n_jobs)
 
-    container = mhn.ssr.state_containers.StateContainer(mutations)
-    grad_, s_ = mhn.ssr.state_space_restriction.cython_gradient_and_score(
-        theta, container
-    )
-    # Note that s is the total loglikelihood *divided by* the number of patients,
-    # so we multiply it again
-    n = len(mutations)
-    return n * grad_, n * s_
+    def gradient_and_loglikelihood(
+        self, mutations: np.ndarray, theta: np.ndarray
+    ) -> tuple[np.ndarray, float]:
+        theta = _cast_theta(theta)
+        mutations = _cast_mutations(mutations)
+
+        fn = _get_function_for_theta(theta)
+
+        grads_and_scores = self._pool(joblib.delayed(fn)(state) for state in mutations)
+        grads_and_scores = cast(list, grads_and_scores)
+
+        grads = [x[0] for x in grads_and_scores]
+        scores = [x[1] for x in grads_and_scores]
+
+        return np.sum(grads, axis=0), np.sum(scores)
+
+
+class MHNCythonBackend(_Backend):
+    @staticmethod
+    def gradient_and_loglikelihood(
+        mutations: np.ndarray, theta: np.ndarray
+    ) -> tuple[np.ndarray, float]:
+        theta = _cast_theta(theta)
+        mutations = _cast_mutations(mutations)
+
+        container = mhn.ssr.state_containers.StateContainer(mutations)
+        grad_, s_ = mhn.ssr.state_space_restriction.cython_gradient_and_score(
+            theta, container
+        )
+        # Note that s is the total loglikelihood *divided by* the number of patients,
+        # so we multiply it again
+        n = len(mutations)
+        return n * grad_, n * s_

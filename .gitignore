@@ -1,3 +1,17 @@
+# Jupyter Notebooks are disallowed by default
+# Use Quarto Notebook (*.qmd) instead
+*.ipynb
+
+# Data files
+*.csv
+*.png
+*.pdf
+*.zip
+*.npy
+*.npz
+*.tar
+*.gz
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
