@@ -1,5 +1,5 @@
 """The jump Markov chain simulation from an underlying Markov process."""
-from typing import Optional
+from typing import Optional, Union, Sequence
 
 import numpy as np
 
@@ -140,3 +140,72 @@ def simulate_trajectory(
 
             current_time = new_time
             current_state = new_state
+
+
+def simulate_genotype_known_time(
+    rng,
+    theta: np.ndarray,
+    sampling_time: float = 1.0,
+    start_state: Optional[State] = None,
+) -> State:
+    trajectory = simulate_trajectory(
+        rng=rng,
+        theta=theta,
+        max_time=sampling_time,
+        start_state=start_state,
+    )
+    _, state = trajectory[-1]
+    return state
+
+
+def simulate_dataset(
+    rng,
+    n_points: int,
+    theta: np.ndarray,
+    mean_sampling_time: Union[np.ndarray, float, Sequence[float]],
+) -> tuple[np.ndarray, np.ndarray]:
+    """Simulates a dataset of genotypes and sampling times.
+
+    Args:
+        rng: the random number generator.
+        n_points: number of points to simulate.
+        theta: the log-MHN matrix. Can be of shape (n_mutations, n_mutations)
+            or (n_points, n_mutations, n_mutations).
+        mean_sampling_time: the mean sampling time.
+            Can be a float (shared between all data point)
+            or an array of shape (n_points,).
+
+    Returns:
+        sampling times, shape (n_points,)
+        genotypes, shape (n_points, n_mutations)
+    """
+    assert len(theta.shape) in {
+        2,
+        3,
+    }, "Theta should have shape (m, m) or (n_points, m, m)."
+
+    # Make sure mean_sampling_time is an array of shape (n_points,)
+    if isinstance(mean_sampling_time, float):
+        mean_sampling_time = np.full(n_points, fill_value=mean_sampling_time)
+    else:
+        mean_sampling_time = np.asarray(mean_sampling_time)
+
+    assert (
+        len(mean_sampling_time) == n_points
+    ), "mean_sampling_time should have length n_points."
+
+    # Make sure theta has shape (n_points, n, n)
+    if len(theta.shape) == 2:
+        theta = np.asarray([theta for _ in range(n_points)])
+
+    assert theta.shape[0] == n_points, "Theta should have shape (n_points, n, n)."
+    assert theta.shape[1] == theta.shape[2], "Each theta should be square."
+
+    sampling_times = rng.exponential(scale=mean_sampling_time, size=n_points)
+
+    genotypes = []
+    for th, t in zip(theta, sampling_times):
+        genotype = simulate_genotype_known_time(rng, theta=th, sampling_time=t)
+        genotypes.append(list(genotype))
+
+    return sampling_times, np.asarray(genotypes)
