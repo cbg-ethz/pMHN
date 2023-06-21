@@ -4,10 +4,10 @@ import pytest
 import pmhn._backend._learnmhn as lmhn
 
 
-def backends() -> list[lmhn._Backend]:
+def backends() -> list[lmhn.MHNBackend]:
     return [
-        lmhn.JoblibBackend(n_jobs=1),
-        lmhn.JoblibBackend(n_jobs=-1),
+        lmhn.MHNJoblibBackend(n_jobs=1),
+        lmhn.MHNJoblibBackend(n_jobs=-1),
         lmhn.MHNCythonBackend(),
     ]
 
@@ -15,7 +15,9 @@ def backends() -> list[lmhn._Backend]:
 @pytest.mark.parametrize("backend", backends())
 @pytest.mark.parametrize("n_patients", [3, 5])
 @pytest.mark.parametrize("n_mutations", [4, 8])
-def test_shapes_work(backend: lmhn._Backend, n_patients: int, n_mutations: int) -> None:
+def test_shapes_work(
+    backend: lmhn.MHNBackend, n_patients: int, n_mutations: int
+) -> None:
     rng = np.random.default_rng(42)
 
     mutations = rng.binomial(1, 0.2, size=(n_patients, n_mutations))
@@ -31,7 +33,7 @@ def test_shapes_work(backend: lmhn._Backend, n_patients: int, n_mutations: int) 
 @pytest.mark.parametrize("ns_patients", [(2, 3), (1, 4), (2, 2)])
 @pytest.mark.parametrize("n_mutations", [4, 8])
 def test_additivity(
-    backend: lmhn._Backend, ns_patients: tuple[int, int], n_mutations: int
+    backend: lmhn.MHNBackend, ns_patients: tuple[int, int], n_mutations: int
 ) -> None:
     """Check whether the loglikelihood and gradient are additive in patients."""
     n1, n2 = ns_patients

@@ -5,7 +5,7 @@ import numpy as np
 import joblib
 
 
-class _Backend(Protocol):
+class MHNBackend(Protocol):
     """A backend for learning the MHN model.
 
     All implementations of this interface must be able to compute
@@ -53,7 +53,7 @@ def _get_function_for_theta(
     return helper
 
 
-class JoblibBackend(_Backend):
+class MHNJoblibBackend(MHNBackend):
     """Calculates the gradient and the loglikelihood
     by using multiple processes via Joblib, sending
     them individual patient data."""
@@ -78,7 +78,7 @@ class JoblibBackend(_Backend):
         return np.sum(grads, axis=0), np.sum(scores)
 
 
-class MHNCythonBackend(_Backend):
+class MHNCythonBackend(MHNBackend):
     """A simple wrapper around the Cython implementation
     of the gradient and loglikelihood."""
 
