@@ -1,4 +1,4 @@
-from pmhn._backend._learnmhn import MHNJoblibBackend, MHNCythonBackend
+from pmhn._backend._learnmhn import MHNJoblibBackend, MHNCythonBackend, MHNBackend
 
 
-__all__ = ["MHNJoblibBackend", "MHNCythonBackend"]
+__all__ = ["MHNJoblibBackend", "MHNCythonBackend", "MHNBackend"]
