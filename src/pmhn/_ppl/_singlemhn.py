@@ -22,8 +22,6 @@ class _MHNLoglikelihoodGrad(Op):
         self._data = np.asarray(data, dtype=np.int32)
         self._backend = backend
 
-        self._n_points = data.shape[0]
-
     def perform(self, node, inputs, outputs):
         (theta,) = inputs
 
@@ -34,7 +32,7 @@ class _MHNLoglikelihoodGrad(Op):
 
         # Rescale the gradients to have the gradients of the total loglikelihood
         # rather than average
-        outputs[0][0] = grads * self._n_points
+        outputs[0][0] = grads
 
 
 class MHNLoglikelihood(Op):
@@ -54,7 +52,6 @@ class MHNLoglikelihood(Op):
         self._data = np.asarray(data, dtype=np.int32)
         self._backend = backend or lmhn.MHNJoblibBackend(n_jobs=-4)
 
-        self._n_points = data.shape[0]
         self._gradop = _MHNLoglikelihoodGrad(data=data, backend=self._backend)
 
     def perform(self, node, inputs, outputs):
@@ -71,7 +68,6 @@ class MHNLoglikelihood(Op):
         _, loglike = self._backend.gradient_and_loglikelihood(
             mutations=self._data, theta=theta
         )
-
         outputs[0][0] = np.array(loglike)  # Wrap the log-likelihood into output
 
     def grad(self, inputs, g):
