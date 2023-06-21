@@ -4,28 +4,6 @@ import mhn
 import numpy as np
 import joblib
 
-DEFAULT_N_JOBS: int = 4
-
-
-def _get_function_for_theta(
-    theta: np.ndarray,
-) -> Callable[[np.ndarray], tuple[np.ndarray, float]]:
-    def helper(mvec: np.ndarray) -> tuple[np.ndarray, float]:
-        container = mhn.ssr.state_containers.StateContainer(mvec.reshape((1, -1)))
-        return mhn.ssr.state_space_restriction.cython_gradient_and_score(
-            theta, container
-        )
-
-    return helper
-
-
-def _cast_theta(theta: np.ndarray) -> np.ndarray:
-    return np.asarray(theta, dtype=np.float64)
-
-
-def _cast_mutations(mutations: np.ndarray) -> np.ndarray:
-    return np.asarray(mutations, dtype=np.int32)
-
 
 class _Backend(Protocol):
     """A backend for learning the MHN model.
@@ -50,6 +28,29 @@ class _Backend(Protocol):
             loglikelihood of the given mutations, float
         """
         ...
+
+
+def _cast_theta(theta: np.ndarray) -> np.ndarray:
+    return np.asarray(theta, dtype=np.float64)
+
+
+def _cast_mutations(mutations: np.ndarray) -> np.ndarray:
+    return np.asarray(mutations, dtype=np.int32)
+
+
+DEFAULT_N_JOBS: int = 4
+
+
+def _get_function_for_theta(
+    theta: np.ndarray,
+) -> Callable[[np.ndarray], tuple[np.ndarray, float]]:
+    def helper(mvec: np.ndarray) -> tuple[np.ndarray, float]:
+        container = mhn.ssr.state_containers.StateContainer(mvec.reshape((1, -1)))
+        return mhn.ssr.state_space_restriction.cython_gradient_and_score(
+            theta, container
+        )
+
+    return helper
 
 
 class JoblibBackend(_Backend):
