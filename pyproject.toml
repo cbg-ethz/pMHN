@@ -13,6 +13,9 @@ mhn = "^0.0.14"
 joblib = "^1.2.0"
 pytensor = "^2.12.3"
 pymc = ">=5"
+matplotlib = "^3.7.1"
+seaborn = "^0.12.2"
+pydantic = "^1.10.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
