@@ -1,3 +1,4 @@
+import warnings
 from typing import cast, Callable, Protocol
 
 import mhn
@@ -28,6 +29,13 @@ class MHNBackend(Protocol):
             loglikelihood of the given mutations, float
         """
         ...
+
+
+def control_no_mutation_warning(silence: bool = True) -> None:
+    """Silence the warning that is raised when a mutation matrix
+    does not contain any mutation."""
+    if silence:
+        warnings.filterwarnings("ignore", message=".*contain any mutation*")
 
 
 def _cast_theta(theta: np.ndarray) -> np.ndarray:

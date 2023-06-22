@@ -7,6 +7,7 @@ from pmhn._backend import (
     MHNCythonBackend,
     MHNJoblibBackend,
     MHNBackend,
+    control_no_mutation_warning,
 )
 from pmhn._ppl import MHNLoglikelihood
 
@@ -19,4 +20,5 @@ __all__ = [
     "MHNCythonBackend",
     "MHNJoblibBackend",
     "MHNBackend",
+    "control_no_mutation_warning",
 ]
