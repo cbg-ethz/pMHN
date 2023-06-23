@@ -10,7 +10,7 @@ import pydantic
 import pmhn
 
 # --- Working directory ---
-workdir: "generated/workflow"
+workdir: "generated/mhn-lasso"
 
 matplotlib.use("agg")
 

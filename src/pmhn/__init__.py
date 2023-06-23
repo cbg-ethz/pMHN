@@ -9,7 +9,7 @@ from pmhn._backend import (
     MHNBackend,
     control_no_mutation_warning,
 )
-from pmhn._ppl import MHNLoglikelihood
+from pmhn._ppl import MHNLoglikelihood, PersonalisedMHNLoglikelihood
 
 
 __all__ = [
@@ -21,4 +21,5 @@ __all__ = [
     "MHNJoblibBackend",
     "MHNBackend",
     "control_no_mutation_warning",
+    "PersonalisedMHNLoglikelihood",
 ]

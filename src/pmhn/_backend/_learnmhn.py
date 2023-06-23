@@ -105,3 +105,85 @@ class MHNCythonBackend(MHNBackend):
         # so we multiply it again
         n = len(mutations)
         return n * grad_, n * s_
+
+
+class PersonalisedMHNBackend(Protocol):
+    def gradient_and_loglikelihood(
+        self,
+        mutations: np.ndarray,
+        thetas: np.ndarray,
+    ) -> tuple[np.ndarray, float]:
+        """Calculates the gradient and the loglikelihood
+        for patients and their personalised (log-)theta
+        matrices.
+
+        Args:
+            mutations: shape (n_patients, n_genes)
+            thetas: shape (n_patients, n_genes, n_genes)
+
+        Returns:
+            gradient, shape (n_patients, n_genes, n_genes)
+            loglikelihood, float
+        """
+        ...
+
+
+class PersonalisedMHNSimpleBackend(PersonalisedMHNBackend):
+    def __init__(self) -> None:
+        self._backend = MHNCythonBackend()
+
+    def gradient_and_loglikelihood(
+        self, mutations: np.ndarray, thetas: np.ndarray
+    ) -> tuple[np.ndarray, float]:
+        grads = np.zeros_like(thetas)
+        total_score = 0.0
+
+        for i, (mutation, theta) in enumerate(zip(mutations, thetas)):
+            grad, score = self._backend.gradient_and_loglikelihood(
+                mutation.reshape((1, -1)), theta=theta
+            )
+            grads[i] = grad
+            total_score += score
+
+        return grads, total_score
+
+
+def _gradient_and_loglikelihood_single(
+    data: tuple[np.ndarray, np.ndarray],
+) -> tuple[np.ndarray, float]:
+    """Computes the gradient and loglikelihood for a single patient and single MHN.
+
+    Args:
+        data: tuple of (mutations, theta)
+
+    Returns:
+        gradient, shape (n_mutations, n_mutations)
+        loglikelihood, float
+    """
+    mutations, theta = data
+    container = mhn.ssr.state_containers.StateContainer(mutations.reshape((1, -1)))
+    return mhn.ssr.state_space_restriction.cython_gradient_and_score(theta, container)
+
+
+class _PersonalisedMHNJoblibBackend(PersonalisedMHNBackend):
+    def __init__(self, n_jobs: int = DEFAULT_N_JOBS) -> None:
+        self._pool = joblib.Parallel(n_jobs=n_jobs)
+
+    def gradient_and_loglikelihood(
+        self, mutations: np.ndarray, thetas: np.ndarray
+    ) -> tuple[np.ndarray, float]:
+        thetas = _cast_theta(thetas)
+        mutations = _cast_mutations(mutations)
+
+        assert len(mutations) == len(thetas), "Length mismatch"
+
+        grads_and_scores = self._pool(
+            joblib.delayed(_gradient_and_loglikelihood_single)(datapoint)
+            for datapoint in zip(mutations, thetas)
+        )
+        grads_and_scores = cast(list, grads_and_scores)
+
+        grads = np.stack([x[0] for x in grads_and_scores])
+        scores = [x[1] for x in grads_and_scores]
+
+        return grads, np.sum(scores)

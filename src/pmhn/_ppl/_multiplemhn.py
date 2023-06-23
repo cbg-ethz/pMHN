@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 import pytensor.tensor as pt
 
@@ -10,32 +8,32 @@ import pmhn._backend._learnmhn as lmhn
 Op = pt.Op  # type: ignore
 
 
-class _MHNLoglikelihoodGrad(Op):
+class _PersonalisedMHNLoglikelihoodGrad(Op):
     """This is a wrapper around the gradient of the loglikelihood
     with respect to the parameters.
     """
 
-    itypes = [pt.dmatrix]
-    otypes = [pt.dmatrix]
+    itypes = [pt.dtensor3]
+    otypes = [pt.dtensor3]
 
-    def __init__(self, data: np.ndarray, backend: lmhn.MHNBackend) -> None:
+    def __init__(
+        self, data: np.ndarray, backend: lmhn._PersonalisedMHNJoblibBackend
+    ) -> None:
         self._data = np.asarray(data, dtype=np.int32)
         self._backend = backend
 
     def perform(self, node, inputs, outputs):
-        (theta,) = inputs
+        (thetas,) = inputs
 
-        cast_theta = np.asarray(theta, dtype=np.float64)
+        cast_thetas = np.asarray(thetas, dtype=np.float64)
         grads, _ = self._backend.gradient_and_loglikelihood(
-            mutations=self._data, theta=cast_theta
+            mutations=self._data, thetas=cast_thetas
         )
 
-        # Rescale the gradients to have the gradients of the total loglikelihood
-        # rather than average
         outputs[0][0] = grads
 
 
-class MHNLoglikelihood(Op):
+class PersonalisedMHNLoglikelihood(Op):
     """A wrapper around the MHN loglikelihood, so that
     it can be used in PyMC models.
 
@@ -43,16 +41,16 @@ class MHNLoglikelihood(Op):
     of shape (n_genes, n_genes).
     """
 
-    itypes = [pt.dmatrix]  # (n_genes, n_genes)
+    itypes = [pt.dtensor3]  # (n_patients, n_genes, n_genes)
     otypes = [pt.dscalar]  # scalar, the loglikelihood
 
-    def __init__(
-        self, data: np.ndarray, backend: Optional[lmhn.MHNBackend] = None
-    ) -> None:
+    def __init__(self, data: np.ndarray, n_jobs: int = 4) -> None:
         self._data = np.asarray(data, dtype=np.int32)
-        self._backend = backend or lmhn.MHNJoblibBackend(n_jobs=4)
+        self._backend = lmhn._PersonalisedMHNJoblibBackend(n_jobs=n_jobs)
 
-        self._gradop = _MHNLoglikelihoodGrad(data=data, backend=self._backend)
+        self._gradop = _PersonalisedMHNLoglikelihoodGrad(
+            data=data, backend=self._backend
+        )
 
     def perform(self, node, inputs, outputs):
         """This is the method which is called by the operation.
@@ -62,16 +60,16 @@ class MHNLoglikelihood(Op):
         Note:
             The arguments and the output are PyTensor variables.
         """
-        (theta,) = inputs  # Unwrap the inputs
+        (thetas,) = inputs  # Unwrap the inputs
 
         # Call the log-likelihood function
         _, loglike = self._backend.gradient_and_loglikelihood(
-            mutations=self._data, theta=theta
+            mutations=self._data, thetas=thetas
         )
         outputs[0][0] = np.array(loglike)  # Wrap the log-likelihood into output
 
     def grad(self, inputs, g):
-        (theta,) = inputs
+        (thetas,) = inputs
         tangent_vector = g[0]
 
-        return [tangent_vector * self._gradop(theta)]
+        return [tangent_vector * self._gradop(thetas)]
