@@ -31,23 +31,8 @@ loglikelihood = pmhn.MHNLoglikelihood(
 
 with pm.Model() as model:  # type: ignore
     theta_var = pm.Cauchy("theta", alpha=0.0, beta=0.1, shape=theta.shape)
-    # theta_var = pm.Laplace("theta", mu=0.0, b=0.5, shape=theta.shape)
     pm.Potential("loglikelihood", loglikelihood(theta_var))
 
-# with model:
-#     map = pm.find_MAP(maxeval=150)
-#     found_map = map["theta"]
-
-# fig, axs = plt.subplots(1, 2, figsize=(7, 3), dpi=300)
-
-# sns.heatmap(theta, vmin=-1, center=0, vmax=1, ax=axs[0], cmap="coolwarm")
-# axs[0].set_title("True")
-
-# sns.heatmap(found_map, vmin=-1, center=0, vmax=1, ax=axs[1], cmap="coolwarm")
-# axs[1].set_title("MAP")
-
-# fig.tight_layout()
-# fig.savefig("plot.pdf")
 
 t0 = time.time()
 n_tune = 200
