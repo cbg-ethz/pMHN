@@ -5,4 +5,47 @@
 
 # Personalised Mutual Hazard Networks
 
+## Running the workflows
+
+To facilitate reproducibility we use [Snakemake](https://snakemake.readthedocs.io/).
+We recommend creating a new virtual environment (e.g., using [Micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)) and installing Snakemake as described in their documentation.
+
+Once the environment is set, the package can be installed using
+```bash
+$ pip install -e .  # Note -e which will allow modifying the code when needed
+```
+
+## Contributing
+
+We use [Poetry](https://python-poetry.org/) to control dependencies.
+
+When Poetry is installed, clone the repository and type
+
+```bash
+$ poetry install --with dev
+```
+
+to install the package with the dependencies used for development.
+
+At this stage you should be able to use [Pytest](https://docs.pytest.org/) to run unit tests:
+
+```bash
+$ poetry run pytest
+```
+
+Alternatively, you may want to work inside Poetry environment:
+```bash
+$ poetry shell
+$ pytest
+```
+
+When you submit a pull request, automated continuous integration tests will be run.
+They include unit tests as well as code quality checks.
+To run the code quality checks automatically at each commit made, we use [pre-commit](https://pre-commit.com/).
+To activate it run:
+
+```bash
+$ poetry shell  # If it is not already active
+$ pre-commit install
+```
 
