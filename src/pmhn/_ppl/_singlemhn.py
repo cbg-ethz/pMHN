@@ -50,7 +50,7 @@ class MHNLoglikelihood(Op):
         self, data: np.ndarray, backend: Optional[lmhn.MHNBackend] = None
     ) -> None:
         self._data = np.asarray(data, dtype=np.int32)
-        self._backend = backend or lmhn.MHNJoblibBackend(n_jobs=-4)
+        self._backend = backend or lmhn.MHNJoblibBackend(n_jobs=4)
 
         self._gradop = _MHNLoglikelihoodGrad(data=data, backend=self._backend)
 
