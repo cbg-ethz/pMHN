@@ -1,3 +1,5 @@
+"""This is temporary script for doing Bayesian inference in MHNs.
+It will be made into a proper workflow at some point."""
 import time
 
 import numpy as np
