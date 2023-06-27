@@ -140,6 +140,6 @@ rule personalised_bayes:
             pm.Potential("loglikelihood", loglikelihood(thetas_all))
 
         with model:
-            idata = pm.sample(draws=500, tune=500, chains=1, cores=1, random_seed=chain_seed)
+            idata = pm.sample(draws=500, tune=500, chains=1, cores=4, random_seed=chain_seed)
         
         idata.to_netcdf(str(output.samples))
