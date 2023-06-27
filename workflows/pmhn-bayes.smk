@@ -16,10 +16,10 @@ matplotlib.use("agg")
 # --- Working directory ---
 workdir: "generated/pmhn-bayes"
 
-N_MUTATIONS: list[int] = [8, 10]
+N_MUTATIONS: list[int] = [8, 10, 20]
 N_PATIENTS: list[int] = [100, 200]
 REGULARISATION: list[float] = [0.3, 1.0, 3.0, 10.0]
-REGULATISATION_2: list[float] = REGULARISATION
+REGULATISATION_2: list[float] = [3.0]
 CHAIN_SEEDS: list[int] = [1, 2, 3, 4]
 
 
@@ -45,13 +45,13 @@ rule generate_data:
         np.fill_diagonal(mask, 1)
     
         # Base theta (for nonsmokers at age 0)
-        theta_base = 0.5 * rng.normal(size=mask.shape) * mask
+        theta_base = 0.2 * rng.normal(size=mask.shape) * mask
 
         # Smoking effects
-        smoking_effect = 0.5 * np.abs(rng.normal(size=n_mutations))
+        smoking_effect = 0.3 * np.abs(rng.normal(size=n_mutations))
 
         # Age effects
-        age_effect = 0.25 * np.abs(rng.normal(size=n_mutations))
+        age_effect = 0.3 * np.abs(rng.normal(size=n_mutations))
 
         # Design matrix
         # Centered age
