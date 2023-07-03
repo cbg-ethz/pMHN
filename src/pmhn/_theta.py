@@ -95,6 +95,7 @@ def sample_spike_and_slab(
     assert 0.0 <= p_offdiag <= 1.0, "p_offdiag should be between 0 and 1."
 
     diag = rng.normal(loc=diag_mean, scale=diag_sigma, size=n_mutations)
+    diag = np.sort(diag)[::-1]  # Sort from highest baseline effects to the smallest
     offdiag = rng.normal(
         loc=0.0, scale=offdiag_effect, size=(n_mutations, n_mutations - 1)
     )
