@@ -9,7 +9,12 @@ from pmhn._backend import (
     MHNBackend,
     control_no_mutation_warning,
 )
-from pmhn._ppl import MHNLoglikelihood, PersonalisedMHNLoglikelihood
+from pmhn._ppl import (
+    MHNLoglikelihood,
+    PersonalisedMHNLoglikelihood,
+    construct_regularized_horseshoe,
+)
+from pmhn._theta import construct_matrix, decompose_matrix, sample_spike_and_slab
 
 
 __all__ = [
@@ -22,4 +27,8 @@ __all__ = [
     "MHNBackend",
     "control_no_mutation_warning",
     "PersonalisedMHNLoglikelihood",
+    "construct_matrix",
+    "decompose_matrix",
+    "sample_spike_and_slab",
+    "construct_regularized_horseshoe",
 ]
