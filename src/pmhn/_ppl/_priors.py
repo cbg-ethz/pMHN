@@ -54,7 +54,10 @@ def construct_regularized_horseshoe(
         )
         c2 = pm.InverseGamma("c2", 1, 1, observed=c2)  # type: ignore
 
-        lambdas_ = lambdas * pt.sqrt(c2 / (c2 + tau**2 * lambdas**2))  # type: ignore
+        lambdas_ = pm.Deterministic(
+            "lambdas_tilde",
+            lambdas * pt.sqrt(c2 / (c2 + tau**2 * lambdas**2)),  # type: ignore
+        )
 
         # Reparametrization trick for efficiency
         z = pm.Normal("z", 0.0, 1.0, shape=(n_mutations, n_mutations))
