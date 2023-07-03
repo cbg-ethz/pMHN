@@ -9,12 +9,15 @@ def construct_matrix(diag: np.ndarray, offdiag: np.ndarray) -> np.ndarray:
         offdiag: array of shape (n, n-1)
 
     Returns:
-        embedding, array of shape (n, n)
+        array of shape (n, n)
           with the diagonal `diag`
           with the offdiagonal term at (k, i)
             given by offdiag[k, j(i)],
           where j(i) = i if i < diagonal_index
             and then skips it for i > diagonal_index
+
+    See Also:
+        decompose_matrix, the inverse function.
     """
     n = len(diag)
     assert offdiag.shape == (n, n - 1)
@@ -32,6 +35,36 @@ def construct_matrix(diag: np.ndarray, offdiag: np.ndarray) -> np.ndarray:
     np.fill_diagonal(embedding, diag)
 
     return embedding
+
+
+def decompose_matrix(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Splits an (n, n) matrix into diagonal and offdiagonal terms.
+
+    Args:
+        matrix: array of shape (n, n)
+
+    Returns:
+        diag, diagonal terms, shape (n,)
+        offdiag, offdiagonal terms, shape (n, n-1)
+
+    See Also:
+        construct_matrix, the inverse function.
+    """
+    n = matrix.shape[0]
+    assert matrix.shape == (n, n)
+
+    diag = np.diag(matrix)
+    offdiag = np.zeros((n, n - 1), dtype=matrix.dtype)
+
+    for i in range(n):
+        # Before the diagonal
+        if i > 0:
+            offdiag[i, :i] = matrix[i, :i]
+        # After the diagonal
+        if i < n - 1:
+            offdiag[i, i:] = matrix[i, i + 1 :]
+
+    return diag, offdiag
 
 
 def sample_spike_and_slab(

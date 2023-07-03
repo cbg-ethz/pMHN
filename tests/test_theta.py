@@ -22,6 +22,30 @@ def test_construct_matrix() -> None:
     )
 
 
+@pytest.mark.parametrize("n_mutations", [2, 5, 10])
+def test_construct_and_decompose_are_inverse1(n_mutations: int) -> None:
+    rng = np.random.default_rng(12)
+    theta = rng.normal(size=(n_mutations, n_mutations))
+
+    diag, offdiag = th.decompose_matrix(theta)
+
+    nptest.assert_allclose(theta, th.construct_matrix(diag, offdiag))
+
+
+@pytest.mark.parametrize("n_mutations", [2, 5, 10])
+def test_construct_and_decompose_are_inverse2(n_mutations: int) -> None:
+    rng = np.random.default_rng(21)
+    diag = rng.normal(size=(n_mutations,))
+    offdiag = rng.normal(size=(n_mutations, n_mutations - 1))
+
+    theta = th.construct_matrix(diag, offdiag)
+
+    diag_, offdiag_ = th.decompose_matrix(theta)
+
+    nptest.assert_allclose(diag, diag_)
+    nptest.assert_allclose(offdiag, offdiag_)
+
+
 @pytest.mark.parametrize("n_mutations", [2, 5])
 @pytest.mark.parametrize("p_offdiag", [0.2, 0.5])
 @pytest.mark.parametrize("diag_mean", [-1.0])
