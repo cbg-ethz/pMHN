@@ -16,6 +16,9 @@ def plot_theta(
     gene_names: Optional[Sequence[str]] = None,
     cmap: str = DEFAULT_COLORMAP,
     cbar: bool = True,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+    no_labels: bool = False,
 ) -> None:
     if gene_names is None:
         gene_names = [f"Gene {i}" for i in range(1, 1 + theta.shape[0])]
@@ -29,7 +32,13 @@ def plot_theta(
         cbar=cbar,
         xticklabels=gene_names,  # type: ignore
         yticklabels=gene_names,  # type: ignore
+        vmin=vmin,
+        vmax=vmax,
     )
+
+    if no_labels:
+        ax.set_xticks([], [])  # type: ignore
+        ax.set_yticks([], [])  # type: ignore
 
 
 def _calculate_offdiagonal_sparsity(theta: np.ndarray, threshold: float = 0.1) -> float:

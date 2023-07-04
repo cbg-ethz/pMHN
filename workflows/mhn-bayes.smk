@@ -16,6 +16,7 @@ workdir: "generated/mhn-bayes"
 
 N_CHAINS: int = 2
 
+
 @dataclasses.dataclass
 class Settings:
     n_mutations: int
@@ -23,6 +24,7 @@ class Settings:
     p_offdiag: float
     mean_sampling_time: float = 1.0
     data_seed: int = 111
+    prior_sampling_seed: int = 222
 
 
 SCENARIOS = {
@@ -94,6 +96,68 @@ rule generate_data:
         )
 
         np.savez(output.arrays, genotypes=genotypes, theta=theta, sampling_times=sampling_times)
+
+
+rule sample_prior:
+    output:
+        prior_samples="{scenario}/prior/samples.nc"
+    run:
+        settings = SCENARIOS[wildcards.scenario]
+        rng = np.random.default_rng(settings.prior_sampling_seed)
+        n_samples: int = 300
+
+        model = pmhn.construct_regularized_horseshoe(n_mutations=settings.n_mutations)
+        with model:
+            idata = pm.sample_prior_predictive(samples=n_samples, random_seed=rng)
+
+        idata.to_netcdf(output.prior_samples)
+
+rule plot_prior_predictives:
+    input:
+        thetas = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
+        offdiagonal_histograms = expand("{scenario}/prior/offdiagonal_histograms.pdf", scenario=SCENARIOS.keys()),
+        offdiagonal_sparsity = expand("{scenario}/prior/offdiagonal_sparsity.pdf", scenario=SCENARIOS.keys())
+
+rule plot_prior_predictive_theta:
+    input: "{scenario}/prior/samples.nc"
+    output: "{scenario}/prior/theta_samples.pdf"
+    run:
+        idata = az.from_netcdf(str(input))
+        samples = idata.prior["theta"][0].values
+
+        fig, axs = plt.subplots(4, 6, figsize=(12, 8))
+
+        for i, ax in enumerate(axs.ravel()):
+            plot_cbar = True  # (i == len(axs.ravel()) - 1)
+            pmhn.plot_theta(samples[i], ax=ax, vmin=samples.min(), vmax=samples.max(), no_labels=True, cbar=plot_cbar)
+
+        fig.tight_layout()
+        fig.savefig(str(output))
+
+
+rule plot_prior_predictive_offdiagonal_histograms:
+    input: "{scenario}/prior/samples.nc"
+    output: "{scenario}/prior/offdiagonal_histograms.pdf"
+    run:
+        idata = az.from_netcdf(str(input))
+        thetas = idata.prior["theta"][0].values
+
+        fig, ax = plt.subplots()
+        pmhn.plot_offdiagonal_histograms(thetas, ax=ax)
+        fig.tight_layout()
+        fig.savefig(str(output))      
+
+rule plot_prior_predictive_offdiagonal_sparsity:
+    input: "{scenario}/prior/samples.nc"
+    output: "{scenario}/prior/offdiagonal_sparsity.pdf"
+    run:
+        idata = az.from_netcdf(str(input))
+        thetas = idata.prior["theta"][0].values
+
+        fig, ax = plt.subplots()
+        pmhn.plot_offdiagonal_sparsity(thetas, ax=ax)
+        fig.tight_layout()
+        fig.savefig(str(output))      
 
 
 rule generate_samples_for_one_chain:
