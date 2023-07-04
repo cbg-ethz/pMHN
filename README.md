@@ -5,6 +5,12 @@
 
 # Personalised Mutual Hazard Networks
 
+Principled probabilistic modelling with Mutual Hazard Networks.
+
+  - **Documentation:** [https://cbg-ethz.github.io/pMHN](https://cbg-ethz.github.io/pMHN)
+  - **Source code:** [https://github.com/cbg-ethz/pMHN](https://github.com/cbg-ethz/pMHN)
+  - **Bug reports:** [https://github.com/cbg-ethz/pMHN/issues](https://github.com/cbg-ethz/pMHN/issues)
+
 ## Running the workflows
 
 To facilitate reproducibility we use [Snakemake](https://snakemake.readthedocs.io/).
@@ -48,4 +54,9 @@ To activate it run:
 $ poetry shell  # If it is not already active
 $ pre-commit install
 ```
+
+
+## Acknowledgements
+
+This package is built around [LearnMHN](https://github.com/spang-lab/LearnMHN) (the backend for Mutual Hazard Networks) and [PyMC](https://www.pymc.io/) (probabilistic language framework).
 
