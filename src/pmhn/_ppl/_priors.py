@@ -6,7 +6,7 @@ import pymc as pm
 import pytensor.tensor as pt
 
 
-def construct_regularized_horseshoe(
+def prior_regularized_horseshoe(
     n_mutations: int,
     baselines_mean: float = 0,
     baselines_sigma: float = 3.0,
@@ -32,7 +32,7 @@ def construct_regularized_horseshoe(
            which has shape (n_mutations, n_mutations)
 
     Example:
-        >>> model = construct_regularized_horseshoe(n_mutations=10)
+        >>> model = prior_regularized_horseshoe(n_mutations=10)
         >>> with model:
         >>>     theta = model.theta
         >>>     pm.Potential("potential", some_function_of(theta))

@@ -108,7 +108,7 @@ rule sample_prior:
         rng = np.random.default_rng(settings.prior_sampling_seed)
         n_samples: int = 300
 
-        model = pmhn.construct_regularized_horseshoe(n_mutations=settings.n_mutations)
+        model = pmhn.prior_regularized_horseshoe(n_mutations=settings.n_mutations)
         with model:
             idata = pm.sample_prior_predictive(samples=n_samples, random_seed=rng)
 
@@ -196,7 +196,7 @@ rule generate_samples_for_one_chain:
             backend=pmhn.MHNCythonBackend(),
         )
 
-        model = pmhn.construct_regularized_horseshoe(n_mutations=genotypes.shape[1])
+        model = pmhn.prior_regularized_horseshoe(n_mutations=genotypes.shape[1])
 
         with model:
             pm.Potential("loglikelihood", loglikelihood(model.theta))

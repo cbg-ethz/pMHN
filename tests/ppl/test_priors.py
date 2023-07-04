@@ -4,7 +4,7 @@ import pmhn._ppl._priors as priors
 
 
 def test_regularized_horseshoe(n_mutations: int = 5) -> None:
-    model = priors.construct_regularized_horseshoe(n_mutations=n_mutations)
+    model = priors.prior_regularized_horseshoe(n_mutations=n_mutations)
 
     assert hasattr(model, "theta")
 
