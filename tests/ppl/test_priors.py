@@ -1,10 +1,21 @@
 import pymc as pm
+import pytest
 
 import pmhn._ppl._priors as priors
 
 
-def test_regularized_horseshoe(n_mutations: int = 5) -> None:
-    model = priors.construct_regularized_horseshoe(n_mutations=n_mutations)
+@pytest.mark.parametrize(
+    "model_factory",
+    [
+        priors.prior_only_baseline_rates,
+        priors.prior_normal,
+        priors.prior_regularized_horseshoe,
+    ],
+)
+def test_basic_prior_test(model_factory, n_mutations: int = 5) -> None:
+    """Tests whether `model.theta` exists
+    and has shape (n_mutations, n_mutations)."""
+    model = model_factory(n_mutations=n_mutations)
 
     assert hasattr(model, "theta")
 

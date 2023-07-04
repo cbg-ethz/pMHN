@@ -12,7 +12,9 @@ from pmhn._backend import (
 from pmhn._ppl import (
     MHNLoglikelihood,
     PersonalisedMHNLoglikelihood,
-    construct_regularized_horseshoe,
+    prior_regularized_horseshoe,
+    prior_normal,
+    prior_only_baseline_rates,
 )
 from pmhn._theta import construct_matrix, decompose_matrix, sample_spike_and_slab
 from pmhn._visualise import (
@@ -38,7 +40,9 @@ __all__ = [
     "construct_matrix",
     "decompose_matrix",
     "sample_spike_and_slab",
-    "construct_regularized_horseshoe",
+    "prior_regularized_horseshoe",
+    "prior_normal",
+    "prior_only_baseline_rates",
     "plot_genotypes",
     "plot_genotype_samples",
     "plot_theta",
