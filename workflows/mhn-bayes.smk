@@ -14,7 +14,7 @@ matplotlib.use("agg")
 # --- Working directory ---
 workdir: "generated/mhn-bayes"
 
-N_CHAINS: int = 2
+N_CHAINS: int = 4
 
 
 @dataclasses.dataclass
@@ -25,11 +25,13 @@ class Settings:
     mean_sampling_time: float = 1.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
+    tuning_samples: int = 1000
+    mcmc_samples: int = 1000
 
 
 SCENARIOS = {
-    "small": Settings(n_mutations=8, n_patients=100, p_offdiag=3/8**2),
-    # "large": Settings(n_mutations=25, n_patients=300, p_offdiag=10/25**2),
+    "small": Settings(n_mutations=8, n_patients=200, p_offdiag=3/8**2),
+    "large": Settings(n_mutations=8, n_patients=2_000, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -120,6 +122,7 @@ rule plot_prior_predictives:
         offdiagonal_sparsity = expand("{scenario}/prior/offdiagonal_sparsity.pdf", scenario=SCENARIOS.keys()),
         genotypes = expand("{scenario}/prior/genotype_samples.pdf", scenario=SCENARIOS.keys())
 
+
 rule plot_prior_predictive_theta:
     input: "{scenario}/prior/samples.nc"
     output: "{scenario}/prior/theta_samples.pdf"
@@ -197,7 +200,7 @@ rule generate_samples_for_one_chain:
 
         with model:
             pm.Potential("loglikelihood", loglikelihood(model.theta))
-            idata = pm.sample(chains=1, random_seed=chain, tune=2, draws=2)
+            idata = pm.sample(chains=1, random_seed=chain, tune=settings.tuning_samples, draws=settings.mcmc_samples)
         
         idata.to_netcdf(output.chain)
 
