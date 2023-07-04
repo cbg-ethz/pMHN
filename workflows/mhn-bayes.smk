@@ -40,7 +40,7 @@ rule plot_theta_from_data:
     run:
         theta = np.load(input.arrays)["theta"]
         fig, ax = plt.subplots()
-        sns.heatmap(theta, ax=ax, square=True, cmap="coolwarm", center=0)
+        pmhn.plot_theta(theta, ax=ax)
         fig.tight_layout()
         fig.savefig(output.theta)
 

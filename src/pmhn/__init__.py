@@ -15,7 +15,7 @@ from pmhn._ppl import (
     construct_regularized_horseshoe,
 )
 from pmhn._theta import construct_matrix, decompose_matrix, sample_spike_and_slab
-from pmhn._visualise import plot_genotypes
+from pmhn._visualise import plot_genotypes, plot_theta
 
 
 __all__ = [
@@ -33,4 +33,5 @@ __all__ = [
     "sample_spike_and_slab",
     "construct_regularized_horseshoe",
     "plot_genotypes",
+    "plot_theta",
 ]
