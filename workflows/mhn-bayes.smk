@@ -1,4 +1,6 @@
 import dataclasses
+
+import arviz as az
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +14,7 @@ matplotlib.use("agg")
 # --- Working directory ---
 workdir: "generated/mhn-bayes"
 
+N_CHAINS: int = 2
 
 @dataclasses.dataclass
 class Settings:
@@ -23,14 +26,15 @@ class Settings:
 
 
 SCENARIOS = {
-    "small": Settings(n_mutations=8, n_patients=200, p_offdiag=3/8**2),
-    "large": Settings(n_mutations=25, n_patients=300, p_offdiag=10/25**2),
+    "small": Settings(n_mutations=8, n_patients=100, p_offdiag=3/8**2),
+    # "large": Settings(n_mutations=25, n_patients=300, p_offdiag=10/25**2),
 }
 
 rule all:
     input:
         theta_matrices = expand("{scenario}/theta.pdf", scenario=SCENARIOS.keys()),
-        genotypes = expand("{scenario}/genotypes.pdf", scenario=SCENARIOS.keys())
+        genotypes = expand("{scenario}/genotypes.pdf", scenario=SCENARIOS.keys()),
+        samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
 
 rule plot_theta_from_data:
     input:
@@ -91,32 +95,37 @@ rule generate_data:
 
         np.savez(output.arrays, genotypes=genotypes, theta=theta, sampling_times=sampling_times)
 
-# loglikelihood = pmhn.MHNLoglikelihood(
-#     data=mutations,
-#     backend=pmhn.MHNCythonBackend(),
-# )
 
-# with pm.Model() as model:  # type: ignore
-#     theta_var = pm.Cauchy("theta", alpha=0.0, beta=0.1, shape=theta.shape)
-#     pm.Potential("loglikelihood", loglikelihood(theta_var))
+rule generate_samples_for_one_chain:
+    input:
+        arrays="{scenario}/arrays.npz"
+    output:
+        chain="{scenario}/mcmc-chains/{chain}.nc"
+    run:
+        chain = int(wildcards.chain)
+        settings = SCENARIOS[wildcards.scenario]
+        genotypes = np.load(input.arrays)["genotypes"]
+
+        loglikelihood = pmhn.MHNLoglikelihood(
+            data=genotypes,
+            backend=pmhn.MHNCythonBackend(),
+        )
+
+        model = pmhn.construct_regularized_horseshoe(n_mutations=genotypes.shape[1])
+
+        with model:
+            pm.Potential("loglikelihood", loglikelihood(model.theta))
+            idata = pm.sample(chains=1, random_seed=chain, tune=2, draws=2)
+        
+        idata.to_netcdf(output.chain)
 
 
-# t0 = time.time()
-# n_tune = 200
-# n_samples = 200
-# n_chains = 4
-
-# print("Sampling...")
-
-
-# with model:
-#     idata = pm.sample(chains=n_chains, random_seed=rng, tune=n_tune, draws=n_samples)
-
-# idata.to_netcdf("idata.nc")
-
-# print(idata)
-
-
-# t1 = time.time()
-
-# print(f"Sampling {n_chains * (n_tune + n_samples)} took {t1 - t0:.2f} seconds")
+rule generate_samples_all:
+    input:
+        chains=expand("{scenario}/mcmc-chains/{chain}.nc", chain=range(1, N_CHAINS + 1), allow_missing=True)
+    output:
+        all_samples="{scenario}/mcmc-samples.nc"
+    run:
+        chains = [az.from_netcdf(chain_file) for chain_file in input.chains]
+        all_samples = az.concat(chains, dim="chain")
+        all_samples.to_netcdf(output.all_samples)
