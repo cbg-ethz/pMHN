@@ -15,7 +15,7 @@ def plot_genotypes(
     if not patients_on_x_axis:
         raise NotImplementedError("Only patients on x axis is supported")
 
-    n_patients, n_genes = genotypes.shape
+    n_patients, _ = genotypes.shape
     if sort:
         index = sorted(np.arange(n_patients), key=lambda i: -np.sum(genotypes[i, :]))
     else:
@@ -36,3 +36,17 @@ def plot_genotypes(
     ax.set_yticks([], [])  # type: ignore
     ax.set_ylabel(genes_label)
     ax.set_xlabel(patients_label)
+
+
+def plot_genotype_samples(
+    genotype_samples: np.ndarray,
+) -> tuple[plt.Figure, np.ndarray]:
+    fig, axs = plt.subplots(
+        len(genotype_samples), 1, figsize=(15, 2 * len(genotype_samples))
+    )
+
+    for i, (genotypes, ax) in enumerate(zip(genotype_samples, axs.ravel())):
+        plot_genotypes(genotypes, ax=ax, patients_on_x_axis=True, sort=True)
+
+    fig.tight_layout()  # type: ignore
+    return fig, axs  # type: ignore

@@ -104,3 +104,44 @@ def plot_offdiagonal_histograms(
     if theta_true is not None:
         _, offdiag = decompose_matrix(theta_true)
         ax.hist(offdiag.ravel(), histtype="step", alpha=1, color="r", linestyle="solid")
+
+
+def plot_theta_samples(
+    theta_samples: np.ndarray,
+    *,
+    width: int = 4,
+    height: int = 3,
+    theta_true: Optional[np.ndarray] = None,
+) -> tuple[plt.Figure, np.ndarray]:
+    """Plot samples from theta."""
+    if len(theta_samples) < width * height:
+        raise NotImplementedError("We need more samples to plot")
+
+    fig, axs = plt.subplots(height, width, figsize=(width * 3, height * 3))
+
+    n_samples_to_plot = width * height
+    vmin = np.min(theta_samples[:n_samples_to_plot])
+    vmax = np.max(theta_samples[:n_samples_to_plot])
+
+    if theta_true is not None:
+        n_samples_to_plot -= 1
+        vmin = min(vmin, np.min(theta_true))
+        vmax = min(vmax, np.max(theta_true))
+
+    for i in range(n_samples_to_plot):
+        plot_theta(
+            theta_samples[i],
+            ax=axs.ravel()[i],
+            no_labels=True,
+            cbar=True,
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+    if theta_true is not None:
+        ax = axs.ravel()[-1]
+        plot_theta(theta_true, ax=ax, no_labels=True, cbar=True, vmin=vmin, vmax=vmax)
+        ax.set_title("True matrix")
+
+    fig.tight_layout()  # type: ignore
+    return fig, axs  # type: ignore

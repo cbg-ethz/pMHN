@@ -112,11 +112,13 @@ rule sample_prior:
 
         idata.to_netcdf(output.prior_samples)
 
+
 rule plot_prior_predictives:
     input:
         thetas = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
         offdiagonal_histograms = expand("{scenario}/prior/offdiagonal_histograms.pdf", scenario=SCENARIOS.keys()),
-        offdiagonal_sparsity = expand("{scenario}/prior/offdiagonal_sparsity.pdf", scenario=SCENARIOS.keys())
+        offdiagonal_sparsity = expand("{scenario}/prior/offdiagonal_sparsity.pdf", scenario=SCENARIOS.keys()),
+        genotypes = expand("{scenario}/prior/genotype_samples.pdf", scenario=SCENARIOS.keys())
 
 rule plot_prior_predictive_theta:
     input: "{scenario}/prior/samples.nc"
@@ -125,13 +127,7 @@ rule plot_prior_predictive_theta:
         idata = az.from_netcdf(str(input))
         samples = idata.prior["theta"][0].values
 
-        fig, axs = plt.subplots(4, 6, figsize=(12, 8))
-
-        for i, ax in enumerate(axs.ravel()):
-            plot_cbar = True  # (i == len(axs.ravel()) - 1)
-            pmhn.plot_theta(samples[i], ax=ax, vmin=samples.min(), vmax=samples.max(), no_labels=True, cbar=plot_cbar)
-
-        fig.tight_layout()
+        fig, _ = pmhn.plot_theta_samples(samples, width=6, height=4)
         fig.savefig(str(output))
 
 
@@ -158,6 +154,28 @@ rule plot_prior_predictive_offdiagonal_sparsity:
         pmhn.plot_offdiagonal_sparsity(thetas, ax=ax)
         fig.tight_layout()
         fig.savefig(str(output))      
+
+rule plot_prior_predictive_genotypes:
+    input: "{scenario}/prior/samples.nc"
+    output: "{scenario}/prior/genotype_samples.pdf"
+    run:
+        settings = SCENARIOS[wildcards.scenario]
+        idata = az.from_netcdf(str(input))
+        thetas = idata.prior["theta"][0].values
+
+        n_samples: int = 30
+        n_patients = settings.n_patients
+        n_mutations = settings.n_mutations
+
+        rng = np.random.default_rng(settings.prior_sampling_seed)
+
+        genotype_matrices = np.zeros((n_samples, n_patients, n_mutations), dtype=int)
+        for i in range(n_samples):
+            _, genotypes = pmhn.simulate_dataset(rng, n_points=n_patients, theta=thetas[i], mean_sampling_time=settings.mean_sampling_time)
+            genotype_matrices[i, ...] = genotypes
+
+        fig, _ = pmhn.plot_genotype_samples(genotype_matrices)
+        fig.savefig(str(output))
 
 
 rule generate_samples_for_one_chain:
