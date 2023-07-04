@@ -6,10 +6,48 @@ import pymc as pm
 import pytensor.tensor as pt
 
 
+def prior_only_baseline_rates(
+    n_mutations: int,
+    mean: float = 0.0,
+    sigma: float = 10.0,
+) -> pm.Model:
+    """Constructs a PyMC model in which the theta
+    matrix contains only diagonal entries."""
+
+    with pm.Model() as model:  # type: ignore
+        baselines = pm.Normal(
+            "baseline_rates",
+            mu=mean,
+            sigma=sigma,
+            size=(n_mutations,),
+        )
+        mask = pt.eye(n_mutations)
+        pm.Deterministic("theta", mask * baselines)  # type: ignore
+    return model
+
+
+def prior_normal(
+    n_mutations: int,
+    mean: float = 0.0,
+    sigma: float = 10.0,
+) -> pm.Model:
+    """Constructs PyMC model in which each entry is sampled
+    from multivariate normal distribution.
+
+    Note:
+        This model is unlikely to result in sparse solutions
+        and for very weak priors (e.g., very large sigma) the solution
+        may be very multimodal.
+    """
+    with pm.Model() as model:  # type: ignore
+        pm.Normal("theta", mean, sigma, shape=(n_mutations, n_mutations))
+    return model
+
+
 def prior_regularized_horseshoe(
     n_mutations: int,
     baselines_mean: float = 0,
-    baselines_sigma: float = 3.0,
+    baselines_sigma: float = 10.0,
     sparsity_sigma: float = 0.3,
     c2: Optional[float] = None,
     tau: Optional[float] = None,
