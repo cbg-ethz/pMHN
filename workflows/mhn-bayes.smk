@@ -59,22 +59,11 @@ rule plot_genotypes_from_data:
         height = max(2, min(characteristic_length * n_mutations, 5))
         width = max(3, min(characteristic_length * n_patients, 10))
 
-        index_sorted = sorted(np.arange(n_patients), key=lambda i: -np.sum(genotypes[i, :]))
-
         fig, axs = plt.subplots(2, 1, figsize=(width, 2 * height))
-        
-        sns.heatmap(genotypes.T, ax=axs[0], cmap="Greys", square=True, vmin=0, vmax=1, cbar=False)
-        sns.heatmap(genotypes[index_sorted, :].T, ax=axs[1], cmap="Greys", square=True, vmin=0, vmax=1, cbar=False)
-        
 
-        axs[0].set_xlabel("Patients (as in the data set)")
-        axs[1].set_xlabel("Patients (sorted by number of mutations)")
+        pmhn.plot_genotypes(genotypes, ax=axs[0], patients_label="Patients (sampled)", sort=False)
+        pmhn.plot_genotypes(genotypes, ax=axs[1], patients_label="Patients (sorted)", sort=True)
 
-        for ax in axs:
-            ax.set_xticks([], [])
-            ax.set_yticks([], [])
-            ax.set_ylabel("Genes")
-        
         fig.tight_layout()
         fig.savefig(output.genotypes)
 
