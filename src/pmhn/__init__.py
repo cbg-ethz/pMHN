@@ -15,6 +15,7 @@ from pmhn._ppl import (
     prior_regularized_horseshoe,
     prior_normal,
     prior_only_baseline_rates,
+    prior_offdiagonal_laplace,
 )
 from pmhn._theta import construct_matrix, decompose_matrix, sample_spike_and_slab
 from pmhn._visualise import (
@@ -43,6 +44,7 @@ __all__ = [
     "prior_regularized_horseshoe",
     "prior_normal",
     "prior_only_baseline_rates",
+    "prior_offdiagonal_laplace",
     "plot_genotypes",
     "plot_genotype_samples",
     "plot_theta",

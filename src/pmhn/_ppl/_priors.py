@@ -115,3 +115,64 @@ def prior_regularized_horseshoe(
         pm.Deterministic("theta", mask * baselines + betas * (1 - mask))  # type: ignore
 
     return model
+
+
+def prior_offdiagonal_laplace(
+    n_mutations: int,
+    penalty: Optional[float] = 1.0,
+    scale: Optional[float] = None,
+    baselines_mean: float = 0.0,
+    baselines_sigma: float = 20.0,
+) -> pm.Model:
+    """Prior modelling off-diagonal entries of the theta matrix
+    using the Laplace distribution.
+
+    Args:
+        n_mutations: number of mutations
+        penalty: L1 penalty to be applied to the off-diagonal entries
+        scale: Laplace prior scale, equal to `1/penalty`.
+        baselines_mean: mean of the normal prior on the baseline rates
+        baselines_sigma: standard deviation of the normal prior on the baseline rates.
+          Use large values to provide very weak regularization
+          on the baseline rates.
+
+    Note:
+      - Laplace distribution is not the best way of enforcing sparsity
+        (i.e., Bayesian Lasso). We recommend horseshoe prior instead.
+        However, this distribution is suitable for a point estimation,
+        with MAP corresponding (approximately) to the Lasso solution.
+      - Exactly one of `penalty` and `scale` must be provided.
+    """
+    if penalty is None and scale is None:
+        raise ValueError("Either penalty or scale must be provided")
+    if penalty is not None and scale is not None:
+        raise ValueError("Only one of penalty and scale must be provided")
+    if scale is None and penalty is not None:
+        if penalty <= 0:
+            raise ValueError("penalty must be positive")
+        scale = 1.0 / penalty
+
+    assert scale is not None
+    if scale <= 0:
+        raise ValueError("Scale must be positive.")
+
+    with pm.Model() as model:  # type: ignore
+        baselines = pm.Normal(
+            "baseline_rates",
+            mu=baselines_mean,
+            sigma=baselines_sigma,
+            size=(n_mutations,),
+        )
+        laplaces = pm.Laplace(
+            "laplace", mu=0.0, b=scale, shape=(n_mutations, n_mutations)
+        )
+
+        # We need to construct the theta matrix out of `laplaces` and `baselines`
+        # Note that we will effectively drop the diagonal of `laplaces`
+        mask = pt.eye(n_mutations)
+        pm.Deterministic(
+            "theta",
+            mask * baselines + laplaces * (1 - mask),  # type: ignore
+        )
+
+    return model

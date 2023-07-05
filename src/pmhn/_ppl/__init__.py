@@ -6,6 +6,7 @@ from pmhn._ppl._priors import (
     prior_regularized_horseshoe,
     prior_normal,
     prior_only_baseline_rates,
+    prior_offdiagonal_laplace,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "prior_regularized_horseshoe",
     "prior_normal",
     "prior_only_baseline_rates",
+    "prior_offdiagonal_laplace",
 ]
