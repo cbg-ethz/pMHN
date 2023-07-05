@@ -10,6 +10,7 @@ import pmhn._ppl._priors as priors
         priors.prior_only_baseline_rates,
         priors.prior_normal,
         priors.prior_regularized_horseshoe,
+        priors.prior_offdiagonal_laplace,
     ],
 )
 def test_basic_prior_test(model_factory, n_mutations: int = 5) -> None:

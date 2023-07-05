@@ -28,17 +28,20 @@ class Settings:
     tuning_samples: int = 1000
     mcmc_samples: int = 1000
 
+    smc_particles: int = 1000
+
 
 SCENARIOS = {
     "small": Settings(n_mutations=8, n_patients=200, p_offdiag=3/8**2),
-    "large": Settings(n_mutations=8, n_patients=2_000, p_offdiag=3/8**2),
+    # "large": Settings(n_mutations=8, n_patients=2_000, p_offdiag=3/8**2),
 }
 
 rule all:
     input:
         theta_matrices = expand("{scenario}/theta.pdf", scenario=SCENARIOS.keys()),
         genotypes = expand("{scenario}/genotypes.pdf", scenario=SCENARIOS.keys()),
-        samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
+        # mcmc_samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
+        smc_samples = expand("{scenario}/smc-samples.nc", scenario=SCENARIOS.keys())
 
 rule plot_theta_from_data:
     input:
@@ -181,7 +184,17 @@ rule plot_prior_predictive_genotypes:
         fig.savefig(str(output))
 
 
-rule generate_samples_for_one_chain:
+def prepare_full_model(genotypes) -> pm.Model:
+    loglikelihood = pmhn.MHNLoglikelihood(data=genotypes, backend=pmhn.MHNCythonBackend())
+    model = pmhn.prior_regularized_horseshoe(n_mutations=genotypes.shape[1])
+
+    with model:
+        pm.Potential("loglikelihood", loglikelihood(model.theta))
+
+    return model
+
+
+rule mcmc_sample_one_chain:
     input:
         arrays="{scenario}/arrays.npz"
     output:
@@ -191,26 +204,51 @@ rule generate_samples_for_one_chain:
         settings = SCENARIOS[wildcards.scenario]
         genotypes = np.load(input.arrays)["genotypes"]
 
-        loglikelihood = pmhn.MHNLoglikelihood(
-            data=genotypes,
-            backend=pmhn.MHNCythonBackend(),
-        )
-
-        model = pmhn.prior_regularized_horseshoe(n_mutations=genotypes.shape[1])
-
+        model = prepare_full_model(genotypes)
         with model:
-            pm.Potential("loglikelihood", loglikelihood(model.theta))
             idata = pm.sample(chains=1, random_seed=chain, tune=settings.tuning_samples, draws=settings.mcmc_samples)
         
         idata.to_netcdf(output.chain)
 
 
-rule generate_samples_all:
+def assemble_chains(chain_files, output_file) -> None:
+    chains = [az.from_netcdf(chain_file) for chain_file in chain_files]
+    all_samples = az.concat(chains, dim="chain")
+    all_samples.to_netcdf(output_file)
+
+
+rule mcmc_assemble_chains:
     input:
         chains=expand("{scenario}/mcmc-chains/{chain}.nc", chain=range(1, N_CHAINS + 1), allow_missing=True)
     output:
         all_samples="{scenario}/mcmc-samples.nc"
     run:
-        chains = [az.from_netcdf(chain_file) for chain_file in input.chains]
-        all_samples = az.concat(chains, dim="chain")
-        all_samples.to_netcdf(output.all_samples)
+        assemble_chains(input.chains, output.all_samples)
+
+rule smc_sample_one_chain:
+    input:
+        arrays="{scenario}/arrays.npz"
+    output:
+        smc_samples="{scenario}/smc-chains/{chain}.nc"
+    run:
+        chain = int(wildcards.chain)
+        settings = SCENARIOS[wildcards.scenario]
+        genotypes = np.load(input.arrays)["genotypes"]
+    
+        model = prepare_full_model(genotypes)
+        with model:
+            idata = pm.sample_smc(
+                draws=settings.smc_particles,
+                chains=1,
+                random_seed=chain,
+            )        
+        idata.to_netcdf(output.smc_samples)
+
+
+rule smc_assemble_chains:
+    input:
+        chains=expand("{scenario}/smc-chains/{chain}.nc", chain=range(1, N_CHAINS + 1), allow_missing=True)
+    output:
+        all_samples="{scenario}/smc-samples.nc"
+    run:
+        assemble_chains(input.chains, output.all_samples)

@@ -55,8 +55,7 @@ $ poetry shell  # If it is not already active
 $ pre-commit install
 ```
 
-
 ## Acknowledgements
 
-This package is built around [LearnMHN](https://github.com/spang-lab/LearnMHN) (the backend for Mutual Hazard Networks) and [PyMC](https://www.pymc.io/) (probabilistic language framework).
+This package is built around [LearnMHN](https://github.com/spang-lab/LearnMHN) (the backend for Mutual Hazard Networks) and [PyMC](https://www.pymc.io/) (probabilistic programming framework).
 
