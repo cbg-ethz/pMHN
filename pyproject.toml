@@ -17,6 +17,7 @@ matplotlib = "^3.7.1"
 seaborn = "^0.12.2"
 pydantic = "^1.10.9"
 netcdf4 = "^1.6.4"
+anytree = "^2.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
