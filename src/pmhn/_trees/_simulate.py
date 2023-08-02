@@ -28,7 +28,7 @@ def _simulate_tree(
         (with the difference that in the paper `Theta_{jl}`
         is used, which is `Theta_{jl} = exp( theta_{jl} )`.
     """
-    # TODO(Laurenz): This implementation is missing and is a priority.
+    # TODO(Pawel): This is part of https://github.com/cbg-ethz/pMHN/issues/14
     #   Note that the sampling time is known that our `theta` entries
     #   are log-Theta entries from the paper.
     raise NotImplementedError

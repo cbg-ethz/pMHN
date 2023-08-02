@@ -72,7 +72,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         Returns:
             loglikelihood of the tree
         """
-        # TODO(Laurenz): This implementation is missing and is a priority.
+        # TODO(Pawel): this is part of https://github.com/cbg-ethz/pMHN/issues/15
         #   It can be implemented in any way.
         raise NotImplementedError
 
@@ -88,7 +88,8 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             gradient `d log P(tree | theta) / d theta`,
               shape (n_mutations, n_mutations)
         """
-        # TODO(Laurenz, Pawel): This implementation is missing,
+        # TODO(Pawel): This is part of
+        #    https://github.com/cbg-ethz/pMHN/issues/18,
         #    but it is *not* a priority.
         #    We will try to do the modelling as soon as possible,
         #    starting with a sequential Monte Carlo sampler
