@@ -6,7 +6,7 @@ from pmhn._trees._validate import validate_tree
 
 def valid_trees() -> list[Tree]:
     """A list of valid trees."""
-    raise NotImplementedError
+    return []
 
 
 @pytest.mark.skip(
@@ -26,7 +26,7 @@ def test_valid_tree_is_valid(tree: Tree) -> None:
 
 def trees_identical_siblings() -> list[Tree]:
     """A list of trees with identical siblings."""
-    raise NotImplementedError
+    return []
 
 
 @pytest.mark.skip(
@@ -42,7 +42,7 @@ def test_invalid_tree_identical_siblings(tree: Tree) -> None:
 
 def trees_repeated_mutations_in_lineage() -> list[Tree]:
     """A list of trees with repeated mutations in a lineage."""
-    raise NotImplementedError
+    return []
 
 
 @pytest.mark.skip(
