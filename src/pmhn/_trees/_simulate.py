@@ -1,9 +1,14 @@
 from typing import Union, Sequence
-
+from anytree import Node
 import numpy as np
 
 from pmhn._trees._interfaces import Tree
 
+def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, min_tree_size: int = 2, max_tree_size: int = 11):
+    while True: 
+        tree = _simulate_tree(rng, theta, sampling_time)
+        if len(tree) >= min_tree_size and len(tree)<=max_tree_size:
+            return tree 
 
 def _simulate_tree(
     rng,
@@ -31,7 +36,38 @@ def _simulate_tree(
     # TODO(Pawel): This is part of https://github.com/cbg-ethz/pMHN/issues/14
     #   Note that the sampling time is known that our `theta` entries
     #   are log-Theta entries from the paper.
-    raise NotImplementedError
+    print("starting ... \n")
+    theta_size=len(theta)
+    node_time_map={}
+    root=Node("0")
+    node_time_map[root]=0
+    U_current=[root]
+    exit_while=False
+    while len(U_current)!=0:
+        U_next=[]
+        for node in U_current:
+            path=list(node.path)
+            old_mutations=[int(node.name) for node in path]
+            possible_mutations=list(set([i+1 for i in range(theta_size)]).difference(set(old_mutations)))
+            for j in possible_mutations:
+                new_node=Node(str(j),parent=node)
+                l=np.exp(theta[j-1][j-1])
+                for anc in [ancestor for ancestor in node.path if ancestor.parent is not None]:
+                    l*=np.exp(theta[j-1][int(anc.name)-1])
+                waiting_time=node_time_map[node]+rng.exponential(1.0/l)
+                if waiting_time<sampling_time:
+                    node_time_map[new_node]=waiting_time
+                    U_next.append(new_node)
+                    if len(node_time_map)==12:
+                        exit_while=True
+                        break
+            if exit_while:
+                break
+        if exit_while:
+            break
+        U_current=U_next
+    print("ending .. \n")
+    return node_time_map
 
 
 def simulate_trees(
@@ -82,7 +118,7 @@ def simulate_trees(
     sampling_times = rng.exponential(scale=mean_sampling_time, size=n_points)
 
     trees = [
-        _simulate_tree(rng, theta=th, sampling_time=t_s)
+        generate_valid_tree(rng, theta=th, sampling_time=t_s)
         for th, t_s in zip(theta, sampling_times)
     ]
 
