@@ -64,7 +64,7 @@ def _simulate_tree(
         theta: real-valued (i.e., log-theta) matrix,
           shape (n_mutations, n_mutations)
         sampling_time: known sampling time
-	max_tree_size: maximum size of tree
+	max_tree_size: maximum size of the tree
     Returns:
         a mutation tree
 
@@ -96,8 +96,8 @@ def _simulate_tree(
             for j in possible_mutations: 
                 new_node = Node(j,parent=node)
                 # Here j lies in the range of 1 to n_mutations inclusive.
-		# However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing
-		# elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position. 
+		        # However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing
+		        # elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position. 
                 l = theta[j - 1][j - 1]
                 for anc in [ancestor for ancestor in node.path if ancestor.parent is not None]:
                     l += theta[j - 1][anc.name - 1]
@@ -106,7 +106,7 @@ def _simulate_tree(
                 if waiting_time < sampling_time:
                     node_time_map[new_node] = waiting_time
                     U_next.append(new_node)
-                    if len(node_time_map) == max_tree_size:
+                    if len(node_time_map) == max_tree_size + 1:
                         exit_while = True
                         break
             if exit_while:
@@ -135,8 +135,8 @@ def simulate_trees(
         mean_sampling_time: the mean sampling time.
             Can be a float (shared between all data point)
             or an array of shape (n_points,).
-	min_tree_size: minimum tree_size
-	max_tree_size: maximum tree_size
+	min_tree_size: minimum size of the trees
+	max_tree_size: maximum size of the trees
 	
     Returns:
         sampling times, shape (n_points,)

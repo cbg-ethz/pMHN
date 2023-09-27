@@ -22,8 +22,8 @@ def write_trees_to_csv(trees, output_file_path):
             node_id = 0
             for node, _ in tree_dict.items():
                 node_id += 1
-                mutation_id = int(node.name)
-                parent_id = int(node.parent.name) if node.parent else node_id
+                mutation_id = node.name
+                parent_id = node.parent.name if node.parent else node_id
                 writer.writerow([patient_id, tree_id, node_id, mutation_id, parent_id])
 
 if __name__ == "__main__":
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     tree_counts = [2000, 5000, 10000, 50000]
     
     min_tree_size = 2
-    max_tree_size = 12
+    max_tree_size = 11
     for n_points in tree_counts:
         trees_file_path = f"/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_{n_points}.csv"
         
