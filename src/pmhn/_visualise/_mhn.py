@@ -12,7 +12,7 @@ DEFAULT_COLORMAP: str = "bwr_r"
 def plot_theta(
     theta: np.ndarray,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     gene_names: Optional[Sequence[str]] = None,
     cmap: str = DEFAULT_COLORMAP,
     cbar: bool = True,
@@ -52,7 +52,7 @@ def _calculate_offdiagonal_sparsity(theta: np.ndarray, threshold: float = 0.1) -
 def plot_offdiagonal_sparsity(
     thetas: np.ndarray,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     thresholds: Sequence[float] = (0.01, 0.1, 0.2),
     true_theta: Optional[np.ndarray] = None,
     true_theta_color: str = "orangered",
@@ -91,7 +91,7 @@ def plot_offdiagonal_sparsity(
 def plot_offdiagonal_histograms(
     thetas: np.ndarray,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     theta_true: Optional[np.ndarray] = None,
     alpha: float = 0.1,
 ) -> None:
@@ -112,7 +112,7 @@ def plot_theta_samples(
     width: int = 4,
     height: int = 3,
     theta_true: Optional[np.ndarray] = None,
-) -> tuple[plt.Figure, np.ndarray]:
+) -> tuple[plt.Figure, np.ndarray]:  # type: ignore
     """Plot samples from theta."""
     if len(theta_samples) < width * height:
         raise NotImplementedError("We need more samples to plot")
