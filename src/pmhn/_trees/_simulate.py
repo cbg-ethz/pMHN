@@ -41,7 +41,7 @@ def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list
     Note:
    	 We assume that mutations are labeled with a number between 1 and n_mutations,
    	 so each element in old_mutations should be in that range (except for the root node = mutation 0).  
-	 If this assumption is violated, the function will produce incorrect results.
+     If this assumption is violated, an exception is raised.
 	 
     """
     for mutation in old_mutations:
