@@ -35,11 +35,13 @@ if __name__ == "__main__":
     theta = mhn_array 
     mean_sampling_time = 1.0  
     
-    tree_counts = [500, 2000, 5000, 10000]
+    tree_counts = [2000, 5000, 10000, 50000]
     
+    min_tree_size = 2
+    max_tree_size = 12
     for n_points in tree_counts:
         trees_file_path = f"/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_{n_points}.csv"
         
-        _, trees = _simulate.simulate_trees(rng, n_points, theta, mean_sampling_time)
+        _, trees = _simulate.simulate_trees(rng, n_points, theta, mean_sampling_time, min_tree_size = min_tree_size, max_tree_size = max_tree_size)
         write_trees_to_csv(trees, trees_file_path)
 
