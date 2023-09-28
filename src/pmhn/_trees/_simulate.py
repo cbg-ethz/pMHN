@@ -96,8 +96,8 @@ def _simulate_tree(
             for j in possible_mutations: 
                 new_node = Node(j,parent=node)
                 # Here j lies in the range of 1 to n_mutations inclusive.
-		        # However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing
-		        # elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position. 
+		# However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing
+		# elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position. 
                 l = theta[j - 1][j - 1]
                 for anc in [ancestor for ancestor in node.path if ancestor.parent is not None]:
                     l += theta[j - 1][anc.name - 1]
