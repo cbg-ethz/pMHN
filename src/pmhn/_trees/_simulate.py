@@ -4,7 +4,7 @@ import numpy as np
 
 from pmhn._trees._interfaces import Tree
 
-def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, min_tree_size: int = None, max_tree_size: int = None) -> Tree:
+def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, mean_sampling_time: float, min_tree_size: int = None, max_tree_size: int = None) -> Tree:
     """
     Generates a single valid tree with known sampling time.
     
@@ -15,6 +15,7 @@ def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, min_tree_s
         sampling_time: known sampling time
         min_tree_size: minimum size of the tree
         max_tree_size: maximum size of the tree
+        mean_sampling_time: parameter for rng
     Returns:
         A valid mutation tree that meets the size constraints if specified.
 
@@ -22,13 +23,15 @@ def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, min_tree_s
         The min_tree_size and max_tree_size parameters consider the entire tree,
         i.e the root node is included.
         To disable the size constraints, leave min_tree_size and max_tree_size as None.
-
+        If a tree is discarded, a new sampling time is drawn.
     """
 
     while True: 
         tree = _simulate_tree(rng, theta, sampling_time, max_tree_size)
         if (min_tree_size is None or len(tree) >= min_tree_size) and (max_tree_size is None or len(tree) <= max_tree_size):
             return tree 
+        else:
+            sampling_time = rng.exponential(scale = mean_sampling_time)
             
 def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list[int]:
     """
@@ -39,9 +42,9 @@ def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list
         a list of possible mutations that could appear next for a given node 
        
     Note:
-   	 We assume that mutations are labeled with a number between 1 and n_mutations,
-   	 so each element in old_mutations should be in that range (except for the root node = mutation 0).  
-     If this assumption is violated, an exception is raised.
+   	We assume that mutations are labeled with a number between 1 and n_mutations,
+   	so each element in old_mutations should be in that range (except for the root node = mutation 0).  
+        If this assumption is violated, an exception is raised.
 	 
     """
     for mutation in old_mutations:
@@ -75,7 +78,7 @@ def _simulate_tree(
         (with the difference that in the paper `Theta_{jl}`
         is used, which is `Theta_{jl} = exp( theta_{jl} )`.
         
-        If the tree is larger than max_tree_size, the function returns.
+        If the tree is larger than max_tree_size, the function returns immediately.
     """
     # TODO(Pawel): This is part of https://github.com/cbg-ethz/pMHN/issues/14
     #   Note that the sampling time is known that our `theta` entries
@@ -135,8 +138,8 @@ def simulate_trees(
         mean_sampling_time: the mean sampling time.
             Can be a float (shared between all data point)
             or an array of shape (n_points,).
-	min_tree_size: minimum size of the trees
-	max_tree_size: maximum size of the trees
+	    min_tree_size: minimum size of the trees
+	    max_tree_size: maximum size of the trees
 	
     Returns:
         sampling times, shape (n_points,)
@@ -170,8 +173,8 @@ def simulate_trees(
     sampling_times = rng.exponential(scale=mean_sampling_time, size=n_points)
 
     trees = [
-        generate_valid_tree(rng, theta=th, sampling_time=t_s, min_tree_size = min_tree_size, max_tree_size = max_tree_size)
-        for th, t_s in zip(theta, sampling_times)
+        generate_valid_tree(rng, theta=th, sampling_time=t_s, mean_sampling_time=ms, min_tree_size = min_tree_size, max_tree_size = max_tree_size)
+        for th, t_s, ms in zip(theta, sampling_times, mean_sampling_time)
     ]
 
     return sampling_times, trees
