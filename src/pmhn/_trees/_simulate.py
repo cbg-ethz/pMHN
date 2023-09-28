@@ -29,7 +29,7 @@ def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, mean_sampl
     while True: 
         tree = _simulate_tree(rng, theta, sampling_time, max_tree_size)
         if (min_tree_size is None or len(tree) >= min_tree_size) and (max_tree_size is None or len(tree) <= max_tree_size):
-            return tree 
+            return tree, sampling_time 
         else:
             sampling_time = rng.exponential(scale = mean_sampling_time)
             
@@ -109,7 +109,7 @@ def _simulate_tree(
                 if waiting_time < sampling_time:
                     node_time_map[new_node] = waiting_time
                     U_next.append(new_node)
-                    if len(node_time_map) == max_tree_size + 1:
+                    if max_tree_size is not None and len(node_time_map) == max_tree_size + 1:
                         exit_while = True
                         break
             if exit_while:
@@ -172,9 +172,17 @@ def simulate_trees(
 
     sampling_times = rng.exponential(scale=mean_sampling_time, size=n_points)
 
-    trees = [
-        generate_valid_tree(rng, theta=th, sampling_time=t_s, mean_sampling_time=ms, min_tree_size = min_tree_size, max_tree_size = max_tree_size)
-        for th, t_s, ms in zip(theta, sampling_times, mean_sampling_time)
-    ]
+
+    trees, sampling_times = zip(*[
+    generate_valid_tree(
+        rng, theta=th, sampling_time=t_s, mean_sampling_time=ms,
+        min_tree_size=min_tree_size, max_tree_size=max_tree_size
+    )
+    for th, t_s, ms in zip(theta, sampling_times, mean_sampling_time)
+])
+
+ 
+    trees = list(trees)
+    sampling_times = list(sampling_times)
 
     return sampling_times, trees
