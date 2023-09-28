@@ -1,0 +1,905 @@
+[1mdiff --git a/src/pmhn/_trees/_simulate.py b/src/pmhn/_trees/_simulate.py[m
+[1mindex 6685ce9..f9e9cda 100644[m
+[1m--- a/src/pmhn/_trees/_simulate.py[m
+[1m+++ b/src/pmhn/_trees/_simulate.py[m
+[36m@@ -4,10 +4,17 @@[m [mimport numpy as np[m
+ [m
+ from pmhn._trees._interfaces import Tree[m
+ [m
+[31m-def generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, min_tree_size: int = None, max_tree_size: int = None) -> Tree:[m
+[32m+[m
+[32m+[m[32mdef generate_valid_tree([m
+[32m+[m[32m    rng,[m
+[32m+[m[32m    theta: np.ndarray,[m
+[32m+[m[32m    mean_sampling_time: float,[m
+[32m+[m[32m    min_tree_size: int = None,[m
+[32m+[m[32m    max_tree_size: int = None,[m
+[32m+[m[32m) -> Tree:[m
+     """[m
+     Generates a single valid tree with known sampling time.[m
+[31m-    [m
+[32m+[m
+     Args:[m
+         rng: random number generator[m
+         theta: real-valued (i.e., log-theta) matrix,[m
+[36m@@ -18,44 +25,50 @@[m [mdef generate_valid_tree(rng, theta: np.ndarray, sampling_time: float, min_tree_s[m
+     Returns:[m
+         A valid mutation tree that meets the size constraints if specified.[m
+ [m
+[31m-    Note: [m
+[32m+[m[32m    Note:[m
+         The min_tree_size and max_tree_size parameters consider the entire tree,[m
+         i.e the root node is included.[m
+         To disable the size constraints, leave min_tree_size and max_tree_size as None.[m
+ [m
+     """[m
+ [m
+[31m-    while True: [m
+[32m+[m[32m    while True:[m
+[32m+[m[32m        sampling_time = rng.exponential(scale=mean_sampling_time)[m
+         tree = _simulate_tree(rng, theta, sampling_time, max_tree_size)[m
+[31m-        if (min_tree_size is None or len(tree) >= min_tree_size) and (max_tree_size is None or len(tree) <= max_tree_size):[m
+[31m-            return tree [m
+[31m-            [m
+[32m+[m[32m        if (min_tree_size is None or len(tree) >= min_tree_size) and ([m
+[32m+[m[32m            max_tree_size is None or len(tree) <= max_tree_size[m
+[32m+[m[32m        ):[m
+[32m+[m[32m            return tree[m
+[32m+[m
+[32m+[m
+ def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list[int]:[m
+     """[m
+     Args:[m
+         old_mutations: list of ancestor mutations of a given node (including the node itself)[m
+         n_mutations: total number of mutations[m
+     Returns:[m
+[31m-        a list of possible mutations that could appear next for a given node [m
+[31m-       [m
+[32m+[m[32m        a list of possible mutations that could appear next for a given node[m
+[32m+[m
+     Note:[m
+[31m-   	 We assume that mutations are labeled with a number between 1 and n_mutations,[m
+[31m-   	 so each element in old_mutations should be in that range (except for the root node = mutation 0).  [m
+[32m+[m[32m         We assume that mutations are labeled with a number between 1 and n_mutations,[m
+[32m+[m[32m         so each element in old_mutations should be in that range (except for the root node = mutation 0).[m
+      If this assumption is violated, an exception is raised.[m
+[31m-	 [m
+[32m+[m
+     """[m
+     for mutation in old_mutations:[m
+         if mutation > n_mutations or mutation < 0:[m
+[31m-            raise ValueError(f"Invalid mutation {mutation} in old_mutations. It should be 0 <= mutation <= {n_mutations}.")[m
+[32m+[m[32m            raise ValueError([m
+[32m+[m[32m                f"Invalid mutation {mutation} in old_mutations. It should be 0 <= mutation <= {n_mutations}."[m
+[32m+[m[32m            )[m
+[32m+[m
+[32m+[m[32m    possible_mutations = list([m
+[32m+[m[32m        set([i + 1 for i in range(n_mutations)]).difference(set(old_mutations))[m
+[32m+[m[32m    )[m
+[32m+[m[32m    return possible_mutations[m
+[32m+[m
+ [m
+[31m-    possible_mutations=list(set([i+1 for i in range(n_mutations)]).difference(set(old_mutations)))[m
+[31m-    return possible_mutations [m
+[31m-    [m
+ def _simulate_tree([m
+[31m-    rng,[m
+[31m-    theta: np.ndarray,[m
+[31m-    sampling_time: float,[m
+[31m-    max_tree_size: int = None[m
+[32m+[m[32m    rng, theta: np.ndarray, sampling_time: float, max_tree_size: int = None[m
+ ) -> Tree:[m
+     """Simulates a single tree with known sampling time.[m
+ [m
+[36m@@ -64,7 +77,7 @@[m [mdef _simulate_tree([m
+         theta: real-valued (i.e., log-theta) matrix,[m
+           shape (n_mutations, n_mutations)[m
+         sampling_time: known sampling time[m
+[31m-	max_tree_size: maximum size of the tree[m
+[32m+[m[32m        max_tree_size: maximum size of the tree[m
+     Returns:[m
+         a mutation tree[m
+ [m
+[36m@@ -74,7 +87,7 @@[m [mdef _simulate_tree([m
+         Appendix A1 to the TreeMHN paper[m
+         (with the difference that in the paper `Theta_{jl}`[m
+         is used, which is `Theta_{jl} = exp( theta_{jl} )`.[m
+[31m-        [m
+[32m+[m
+         If the tree is larger than max_tree_size, the function returns.[m
+     """[m
+     # TODO(Pawel): This is part of https://github.com/cbg-ethz/pMHN/issues/14[m
+[36m@@ -92,17 +105,23 @@[m [mdef _simulate_tree([m
+         for node in U_current:[m
+             path = list(node.path)[m
+             old_mutations = [node.name for node in path][m
+[31m-            possible_mutations = _find_possible_mutations(old_mutations = old_mutations,n_mutations = n_mutations)[m
+[31m-            for j in possible_mutations: [m
+[31m-                new_node = Node(j,parent=node)[m
+[32m+[m[32m            possible_mutations = _find_possible_mutations([m
+[32m+[m[32m                old_mutations=old_mutations, n_mutations=n_mutations[m
+[32m+[m[32m            )[m
+[32m+[m[32m            for j in possible_mutations:[m
+[32m+[m[32m                new_node = Node(j, parent=node)[m
+                 # Here j lies in the range of 1 to n_mutations inclusive.[m
+[31m-		# However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing[m
+[31m-		# elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position. [m
+[32m+[m[32m                # However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing[m
+[32m+[m[32m                # elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position.[m
+                 l = theta[j - 1][j - 1][m
+[31m-                for anc in [ancestor for ancestor in node.path if ancestor.parent is not None]:[m
+[32m+[m[32m                for anc in [[m
+[32m+[m[32m                    ancestor for ancestor in node.path if ancestor.parent is not None[m
+[32m+[m[32m                ]:[m
+                     l += theta[j - 1][anc.name - 1][m
+                 l = np.exp(l)[m
+                 waiting_time = node_time_map[node] + rng.exponential(1.0 / l)[m
+[32m+[m[32m                print("waiting_time shape:", np.shape(waiting_time))[m
+[32m+[m[32m                print("sampling_time shape:", np.shape(sampling_time))[m
+                 if waiting_time < sampling_time:[m
+                     node_time_map[new_node] = waiting_time[m
+                     U_next.append(new_node)[m
+[36m@@ -124,7 +143,7 @@[m [mdef simulate_trees([m
+     theta: np.ndarray,[m
+     mean_sampling_time: Union[np.ndarray, float, Sequence[float]],[m
+     min_tree_size: int = None,[m
+[31m-    max_tree_size: int = None[m
+[32m+[m[32m    max_tree_size: int = None,[m
+ ) -> tuple[np.ndarray, list[Tree]]:[m
+     """Simulates a data set of trees with known sampling times.[m
+ [m
+[36m@@ -135,9 +154,9 @@[m [mdef simulate_trees([m
+         mean_sampling_time: the mean sampling time.[m
+             Can be a float (shared between all data point)[m
+             or an array of shape (n_points,).[m
+[31m-	min_tree_size: minimum size of the trees[m
+[31m-	max_tree_size: maximum size of the trees[m
+[31m-	[m
+[32m+[m[32m        min_tree_size: minimum size of the trees[m
+[32m+[m[32m        max_tree_size: maximum size of the trees[m
+[32m+[m
+     Returns:[m
+         sampling times, shape (n_points,)[m
+         sampled trees, list of length `n_points`[m
+[36m@@ -150,16 +169,6 @@[m [mdef simulate_trees([m
+         3,[m
+     }, "Theta should have shape (m, m) or (n_points, m, m)."[m
+ [m
+[31m-    # Make sure mean_sampling_time is an array of shape (n_points,)[m
+[31m-    if isinstance(mean_sampling_time, float):[m
+[31m-        mean_sampling_time = np.full(n_points, fill_value=mean_sampling_time)[m
+[31m-    else:[m
+[31m-        mean_sampling_time = np.asarray(mean_sampling_time)[m
+[31m-[m
+[31m-    assert ([m
+[31m-        len(mean_sampling_time) == n_points[m
+[31m-    ), "mean_sampling_time should have length n_points."[m
+[31m-[m
+     # Make sure theta has shape (n_points, n, n)[m
+     if len(theta.shape) == 2:[m
+         theta = np.asarray([theta for _ in range(n_points)])[m
+[36m@@ -167,11 +176,15 @@[m [mdef simulate_trees([m
+     assert theta.shape[0] == n_points, "Theta should have shape (n_points, n, n)."[m
+     assert theta.shape[1] == theta.shape[2], "Each theta should be square."[m
+ [m
+[31m-    sampling_times = rng.exponential(scale=mean_sampling_time, size=n_points)[m
+[31m-[m
+     trees = [[m
+[31m-        generate_valid_tree(rng, theta=th, sampling_time=t_s, min_tree_size = min_tree_size, max_tree_size = max_tree_size)[m
+[31m-        for th, t_s in zip(theta, sampling_times)[m
+[32m+[m[32m        generate_valid_tree([m
+[32m+[m[32m            rng,[m
+[32m+[m[32m            theta=th,[m
+[32m+[m[32m            mean_sampling_time=mean_sampling_time,[m
+[32m+[m[32m            min_tree_size=min_tree_size,[m
+[32m+[m[32m            max_tree_size=max_tree_size,[m
+[32m+[m[32m        )[m
+[32m+[m[32m        for th in theta[m
+     ][m
+ [m
+[31m-    return sampling_times, trees[m
+[32m+[m[32m    return trees[m
+[1mdiff --git a/tests/trees/test_simulate.py b/tests/trees/test_simulate.py[m
+[1mindex 83865b6..4c8f8df 100644[m
+[1m--- a/tests/trees/test_simulate.py[m
+[1m+++ b/tests/trees/test_simulate.py[m
+[36m@@ -1,34 +1,39 @@[m
+ import numpy as np[m
+ import pmhn._trees._simulate as simulate[m
+ import pytest[m
+[32m+[m
+[32m+[m
+ def test_generate_valid_tree():[m
+     """[m
+     We want to test if valid trees are generated. Here we test the size requirements[m
+     and the waiting times.[m
+     """[m
+     rng = np.random.default_rng()[m
+[31m-    theta = np.array([[-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[31m- [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[31m- [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[31m- [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[31m- [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[31m- [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[31m- [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[31m- [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[31m- [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[31m- [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03]][m
+[31m-)[m
+[32m+[m[32m    theta = np.array([m
+[32m+[m[32m        [[m
+[32m+[m[32m            [-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[32m+[m[32m            [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[32m+[m[32m            [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[32m+[m[32m            [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[32m+[m[32m            [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[32m+[m[32m            [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[32m+[m[32m            [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[32m+[m[32m            [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03],[m
+[32m+[m[32m        ][m
+[32m+[m[32m    )[m
+     sampling_time = 1.0[m
+     min_tree_size = 2[m
+     max_tree_size = 12[m
+ [m
+     for _ in range(10000):[m
+[31m-        tree = simulate.generate_valid_tree(rng, theta, sampling_time, min_tree_size, max_tree_size)[m
+[31m-        [m
+[31m-        [m
+[32m+[m[32m        tree = simulate.generate_valid_tree([m
+[32m+[m[32m            rng, theta, sampling_time, min_tree_size, max_tree_size[m
+[32m+[m[32m        )[m
+[32m+[m
+         assert min_tree_size <= len(tree) <= max_tree_size[m
+[31m-        [m
+[31m-       [m
+[32m+[m
+         for node, time in tree.items():[m
+             assert time < sampling_time[m
+ [m
+[36m@@ -39,90 +44,106 @@[m [mdef test_generate_tree_no_size_constraints():[m
+     """[m
+ [m
+     rng = np.random.default_rng()[m
+[31m-    theta = np.array([[-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[31m- [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[31m- [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[31m- [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[31m- [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[31m- [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[31m- [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[31m- [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[31m- [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[31m- [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03]][m
+[31m-)[m
+[32m+[m[32m    theta = np.array([m
+[32m+[m[32m        [[m
+[32m+[m[32m            [-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[32m+[m[32m            [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[32m+[m[32m            [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[32m+[m[32m            [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[32m+[m[32m            [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[32m+[m[32m            [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[32m+[m[32m            [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[32m+[m[32m            [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03],[m
+[32m+[m[32m        ][m
+[32m+[m[32m    )[m
+     sampling_time = 1.0[m
+[31m-    [m
+[32m+[m
+     for _ in range(10000):[m
+         tree = simulate.generate_valid_tree(rng, theta, sampling_time)[m
+[31m-        [m
+[32m+[m
+         for node, time in tree.items():[m
+             assert time < sampling_time[m
+ [m
+[32m+[m
+ def test_generate_tree_no_min_size_constraint():[m
+     """[m
+     Here we test the case where min_tree_size is None but max_tree_size is specified.[m
+     """[m
+     rng = np.random.default_rng()[m
+[31m-    theta = np.array([[-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[31m- [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[31m- [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[31m- [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[31m- [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[31m- [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[31m- [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[31m- [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[31m- [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[31m- [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03]][m
+[31m-)[m
+[32m+[m[32m    theta = np.array([m
+[32m+[m[32m        [[m
+[32m+[m[32m            [-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[32m+[m[32m            [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[32m+[m[32m            [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[32m+[m[32m            [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[32m+[m[32m            [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[32m+[m[32m            [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[32m+[m[32m            [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[32m+[m[32m            [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03],[m
+[32m+[m[32m        ][m
+[32m+[m[32m    )[m
+     sampling_time = 1.0[m
+     max_tree_size = 8[m
+[31m-    [m
+[32m+[m
+     for _ in range(10000):[m
+[31m-        tree = simulate.generate_valid_tree(rng, theta, sampling_time, max_tree_size=max_tree_size)[m
+[32m+[m[32m        tree = simulate.generate_valid_tree([m
+[32m+[m[32m            rng, theta, sampling_time, max_tree_size=max_tree_size[m
+[32m+[m[32m        )[m
+         assert len(tree) <= max_tree_size[m
+[31m-        [m
+[32m+[m
+         for node, time in tree.items():[m
+             assert time < sampling_time[m
+ [m
+[32m+[m
+ def test_generate_tree_no_max_size_constraint():[m
+     """[m
+     Here we test the case where max_tree_size is None but min_tree_size is specified.[m
+     """[m
+     rng = np.random.default_rng()[m
+[31m-    theta = np.array([[-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[31m- [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[31m- [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[31m- [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[31m- [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[31m- [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[31m- [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[31m- [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[31m- [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[31m- [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03]][m
+[31m-)[m
+[32m+[m[32m    theta = np.array([m
+[32m+[m[32m        [[m
+[32m+[m[32m            [-1.41, 0.00, 0.00, 4.91, 1.03, 0.00, -1.91, -0.74, -1.35, 1.48],[m
+[32m+[m[32m            [-1.12, -2.26, 0.00, 0.82, 0.00, 0.00, 1.16, 0.00, -1.62, 0.00],[m
+[32m+[m[32m            [0.00, -0.86, -2.55, 1.58, 0.00, 0.00, 1.02, -2.70, 0.00, 0.68],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, -3.69, 0.00, 0.00, -0.95, 1.42, 0.00, -1.01],[m
+[32m+[m[32m            [-3.08, -1.42, -3.14, 0.00, -3.95, 3.90, -1.46, -2.00, 0.00, 2.87],[m
+[32m+[m[32m            [-2.24, 0.00, 0.00, 0.00, 0.00, -2.38, -2.13, 1.50, 0.00, 1.35],[m
+[32m+[m[32m            [0.00, 0.00, 0.00, 0.00, 1.52, 0.00, -1.79, 0.00, 0.00, 0.00],[m
+[32m+[m[32m            [1.69, 0.76, 0.00, 1.29, 1.73, -0.82, -1.38, -4.65, 0.92, 0.00],[m
+[32m+[m[32m            [-1.22, 0.00, 0.00, 0.00, 0.65, -1.14, 0.00, 0.00, -3.25, 0.00],[m
+[32m+[m[32m            [0.97, 1.75, 0.00, -3.66, -1.28, 0.00, 1.66, 0.00, 0.00, -3.03],[m
+[32m+[m[32m        ][m
+[32m+[m[32m    )[m
+     sampling_time = 1.0[m
+     min_tree_size = 3[m
+[31m-    [m
+[32m+[m
+     for _ in range(10000):[m
+[31m-        tree = simulate.generate_valid_tree(rng, theta, sampling_time, min_tree_size=min_tree_size)[m
+[31m-        [m
+[32m+[m[32m        tree = simulate.generate_valid_tree([m
+[32m+[m[32m            rng, theta, sampling_time, min_tree_size=min_tree_size[m
+[32m+[m[32m        )[m
+[32m+[m
+         assert len(tree) >= min_tree_size[m
+[31m-        [m
+[32m+[m
+         for node, time in tree.items():[m
+             assert time < sampling_time[m
+[31m-            [m
+[32m+[m
+[32m+[m
+ def test_find_possible_mutations_normal():[m
+     """[m
+[31m-    We want to test if the possible_mutations list is correct. [m
+[32m+[m[32m    We want to test if the possible_mutations list is correct.[m
+     """[m
+     old_mutations = [7, 2, 5, 9][m
+     n_mutations = 10[m
+     possible_mutations = simulate._find_possible_mutations(old_mutations, n_mutations)[m
+[31m-    [m
+[32m+[m
+     assert possible_mutations == [1, 3, 4, 6, 8, 10][m
+[31m-    [m
+[31m-def test_find_possible_mutations_edge():   [m
+ [m
+[32m+[m
+[32m+[m[32mdef test_find_possible_mutations_edge():[m
+     """[m
+     We want to test if the possible_mutations list is correct. old_mutations with mutations on the edge.[m
+     """[m
+[36m@@ -130,31 +151,35 @@[m [mdef test_find_possible_mutations_edge():[m
+     old_mutations = [1, 10][m
+     n_mutations = 10[m
+     possible_mutations = simulate._find_possible_mutations(old_mutations, n_mutations)[m
+[31m-    [m
+[32m+[m
+     assert possible_mutations == [i for i in range(2, 10)][m
+[31m-    [m
+[31m-def test_find_possible_mutations_except_positive(): [m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_find_possible_mutations_except_positive():[m
+     """[m
+     We want to test if an exception is correctly thrown when the old_mutations list is invalid (mutation number too large).[m
+[31m-    """   [m
+[32m+[m[32m    """[m
+     old_mutations = [212, 1, 3, 7][m
+     n_mutations = 10[m
+     with pytest.raises(ValueError) as excinfo:[m
+[31m-    	simulate._find_possible_mutations(old_mutations, n_mutations)[m
+[31m-    [m
+[31m-    assert str(excinfo.value) == "Invalid mutation 212 in old_mutations. It should be 0 <= mutation <= 10."[m
+[31m-    [m
+[31m-def test_find_possible_mutations_except_negative():    [m
+[32m+[m[32m        simulate._find_possible_mutations(old_mutations, n_mutations)[m
+[32m+[m
+[32m+[m[32m    assert ([m
+[32m+[m[32m        str(excinfo.value)[m
+[32m+[m[32m        == "Invalid mutation 212 in old_mutations. It should be 0 <= mutation <= 10."[m
+[32m+[m[32m    )[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_find_possible_mutations_except_negative():[m
+     """[m
+     We want to test if an exception is correctly thrown when the old_mutations list is invalid (mutation number too small).[m
+[31m-    """  [m
+[32m+[m[32m    """[m
+     old_mutations = [-23, 0, 5][m
+     n_mutations = 10[m
+     with pytest.raises(ValueError) as excinfo:[m
+[31m-    	simulate._find_possible_mutations(old_mutations, n_mutations)[m
+[31m-    [m
+[31m-    assert str(excinfo.value) == "Invalid mutation -23 in old_mutations. It should be 0 <= mutation <= 10."[m
+[31m-    [m
+[31m-    [m
+[31m-            [m
+[32m+[m[32m        simulate._find_possible_mutations(old_mutations, n_mutations)[m
+ [m
+[32m+[m[32m    assert ([m
+[32m+[m[32m        str(excinfo.value)[m
+[32m+[m[32m        == "Invalid mutation -23 in old_mutations. It should be 0 <= mutation <= 10."[m
+[32m+[m[32m    )[m
+[1mdiff --git a/warmup/children.py b/warmup/children.py[m
+[1mindex 6ec7914..d22c176 100644[m
+[1m--- a/warmup/children.py[m
+[1m+++ b/warmup/children.py[m
+[36m@@ -9,8 +9,7 @@[m [mF = Node("F", parent=C)[m
+ [m
+ all_nodes = list(PreOrderIter(A))[m
+ print(RenderTree(A))[m
+[31m-children={}[m
+[32m+[m[32mchildren = {}[m
+ for node in all_nodes:[m
+     children[node.name] = [child.name for child in node.children][m
+[31m-print(children)    [m
+[31m-[m
+[32m+[m[32mprint(children)[m
+[1mdiff --git a/warmup/plot_all_mut_freq.py b/warmup/plot_all_mut_freq.py[m
+[1mindex b3d14e9..15b05fb 100644[m
+[1m--- a/warmup/plot_all_mut_freq.py[m
+[1m+++ b/warmup/plot_all_mut_freq.py[m
+[36m@@ -2,32 +2,63 @@[m [mimport pandas as pd[m
+ import matplotlib.pyplot as plt[m
+ [m
+ paths = {[m
+[31m-    2000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_2000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_2000.csv'),[m
+[31m-    5000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_5000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_5000.csv'),[m
+[31m-    10000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_10000.csv'),[m
+[31m-    50000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_50000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_50000.csv'),[m
+[32m+[m[32m    500: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_500.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_500.csv",[m
+[32m+[m[32m    ),[m
+[32m+[m[32m    5000: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_5000.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_5000.csv",[m
+[32m+[m[32m    ),[m
+[32m+[m[32m    10000: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_10000.csv",[m
+[32m+[m[32m    ),[m
+[32m+[m[32m    50000: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_50000.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_50000.csv",[m
+[32m+[m[32m    ),[m
+ }[m
+ [m
+ fig, axs = plt.subplots(2, 2, figsize=(10, 10))  # 2x2 grid of subplots[m
+[31m-axs = axs.ravel() [m
+[32m+[m[32maxs = axs.ravel()[m
+ [m
+ for i, (num_trees, (r_path, python_path)) in enumerate(paths.items()):[m
+     r_trees = pd.read_csv(r_path)[m
+     python_trees = pd.read_csv(python_path)[m
+[31m-    [m
+[31m-    r_mutation_frequencies = r_trees['Mutation_ID'].value_counts().sort_index()[m
+[31m-    python_mutation_frequencies = python_trees['Mutation_ID'].value_counts().sort_index()[m
+[31m-    [m
+[32m+[m
+[32m+[m[32m    r_mutation_frequencies = r_trees["Mutation_ID"].value_counts().sort_index()[m
+[32m+[m[32m    python_mutation_frequencies = ([m
+[32m+[m[32m        python_trees["Mutation_ID"].value_counts().sort_index()[m
+[32m+[m[32m    )[m
+[32m+[m
+     bar_width = 0.35[m
+[31m-    [m
+[31m-    r_mutation_frequencies.plot(kind='bar', width=bar_width, position=0, align='center', color='b', alpha=0.5, label='R Trees', ax=axs[i])[m
+[31m-    python_mutation_frequencies.plot(kind='bar', width=bar_width, position=1, align='center', color='r', alpha=0.5, label='Python Trees', ax=axs[i])[m
+[31m-    [m
+[31m-    axs[i].set_xlabel('Mutation ID')[m
+[31m-    axs[i].set_ylabel('Frequency')[m
+[31m-    axs[i].legend(loc='upper right')[m
+[31m-    axs[i].set_title(f'Mutation Frequency Distribution ({num_trees} trees)')[m
+[31m-[m
+[31m-plt.tight_layout() [m
+[31m-plt.show()[m
+ [m
+[32m+[m[32m    r_mutation_frequencies.plot([m
+[32m+[m[32m        kind="bar",[m
+[32m+[m[32m        width=bar_width,[m
+[32m+[m[32m        position=0,[m
+[32m+[m[32m        align="center",[m
+[32m+[m[32m        color="b",[m
+[32m+[m[32m        alpha=0.5,[m
+[32m+[m[32m        label="R Trees",[m
+[32m+[m[32m        ax=axs[i],[m
+[32m+[m[32m    )[m
+[32m+[m[32m    python_mutation_frequencies.plot([m
+[32m+[m[32m        kind="bar",[m
+[32m+[m[32m        width=bar_width,[m
+[32m+[m[32m        position=1,[m
+[32m+[m[32m        align="center",[m
+[32m+[m[32m        color="r",[m
+[32m+[m[32m        alpha=0.5,[m
+[32m+[m[32m        label="Python Trees",[m
+[32m+[m[32m        ax=axs[i],[m
+[32m+[m[32m    )[m
+[32m+[m
+[32m+[m[32m    axs[i].set_xlabel("Mutation ID")[m
+[32m+[m[32m    axs[i].set_ylabel("Frequency")[m
+[32m+[m[32m    axs[i].legend(loc="upper right")[m
+[32m+[m[32m    axs[i].set_title(f"Mutation Frequency Distribution ({num_trees} trees)")[m
+[32m+[m
+[32m+[m[32mplt.tight_layout()[m
+[32m+[m[32mplt.show()[m
+[1mdiff --git a/warmup/plot_all_trees.py b/warmup/plot_all_trees.py[m
+[1mindex acc932b..1120bb5 100644[m
+[1m--- a/warmup/plot_all_trees.py[m
+[1m+++ b/warmup/plot_all_trees.py[m
+[36m@@ -3,12 +3,25 @@[m [mimport matplotlib.pyplot as plt[m
+ [m
+ [m
+ paths = {[m
+[31m-    2000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_2000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_2000.csv'),[m
+[31m-    5000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_5000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_5000.csv'),[m
+[31m-    10000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_10000.csv'),[m
+[31m-    50000: ('/home/laukeller/BSc Thesis/TreeMHN/Example/trees_50000.csv', '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_50000.csv'),[m
+[32m+[m[32m    500: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_500.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_500.csv",[m
+[32m+[m[32m    ),[m
+[32m+[m[32m    5000: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_5000.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_5000.csv",[m
+[32m+[m[32m    ),[m
+[32m+[m[32m    10000: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_10000.csv",[m
+[32m+[m[32m    ),[m
+[32m+[m[32m    50000: ([m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_50000.csv",[m
+[32m+[m[32m        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_50000.csv",[m
+[32m+[m[32m    ),[m
+ }[m
+ [m
+[32m+[m
+ fig, axs = plt.subplots(2, 2, figsize=(10, 10))  # 2x2 grid of subplots[m
+ axs = axs.ravel()[m
+ [m
+[36m@@ -17,17 +30,16 @@[m [mbin_edges = [x - 0.5 for x in range(2, 12)] + [11.5]  # [1.5, 2.5, ..., 10.5, 11[m
+ for i, (num_trees, (r_path, python_path)) in enumerate(paths.items()):[m
+     r_trees = pd.read_csv(r_path)[m
+     python_trees = pd.read_csv(python_path)[m
+[31m-    [m
+[31m-    r_tree_sizes = r_trees.groupby('Tree_ID').size()[m
+[31m-    python_tree_sizes = python_trees.groupby('Tree_ID').size()[m
+[31m-    [m
+[31m-    axs[i].hist(r_tree_sizes, bins=bin_edges, alpha=0.5, label='R Trees')[m
+[31m-    axs[i].hist(python_tree_sizes, bins=bin_edges, alpha=0.5, label='Python Trees')[m
+[31m-    axs[i].set_xlabel('Tree Size')[m
+[31m-    axs[i].set_ylabel('Frequency')[m
+[31m-    axs[i].legend(loc='upper right')[m
+[31m-    axs[i].set_title(f'Tree Size Distribution ({num_trees} trees)')[m
+[31m-[m
+[31m-plt.tight_layout()  [m
+[31m-plt.show()[m
+ [m
+[32m+[m[32m    r_tree_sizes = r_trees.groupby("Tree_ID").size()[m
+[32m+[m[32m    python_tree_sizes = python_trees.groupby("Tree_ID").size()[m
+[32m+[m
+[32m+[m[32m    axs[i].hist(r_tree_sizes, bins=bin_edges, alpha=0.5, label="R Trees")[m
+[32m+[m[32m    axs[i].hist(python_tree_sizes, bins=bin_edges, alpha=0.5, label="Python Trees")[m
+[32m+[m[32m    axs[i].set_xlabel("Tree Size")[m
+[32m+[m[32m    axs[i].set_ylabel("Frequency")[m
+[32m+[m[32m    axs[i].legend(loc="upper right")[m
+[32m+[m[32m    axs[i].set_title(f"Tree Size Distribution ({num_trees} trees)")[m
+[32m+[m
+[32m+[m[32mplt.tight_layout()[m
+[32m+[m[32mplt.show()[m
+[1mdiff --git a/warmup/plot_mutation_freq.py b/warmup/plot_mutation_freq.py[m
+[1mindex 0bdfc28..52962b0 100644[m
+[1m--- a/warmup/plot_mutation_freq.py[m
+[1m+++ b/warmup/plot_mutation_freq.py[m
+[36m@@ -1,27 +1,44 @@[m
+ import pandas as pd[m
+ import matplotlib.pyplot as plt[m
+ [m
+[31m-r_trees_path ='/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv'[m
+[31m-python_trees_path ='/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_10000.csv'[m
+[32m+[m[32mr_trees_path = "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv"[m
+[32m+[m[32mpython_trees_path = "/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_10000.csv"[m
+ [m
+ r_trees = pd.read_csv(r_trees_path)[m
+ python_trees = pd.read_csv(python_trees_path)[m
+ [m
+[31m-r_mutation_frequencies = r_trees['Mutation_ID'].value_counts().sort_index()[m
+[31m-python_mutation_frequencies = python_trees['Mutation_ID'].value_counts().sort_index()[m
+[32m+[m[32mr_mutation_frequencies = r_trees["Mutation_ID"].value_counts().sort_index()[m
+[32m+[m[32mpython_mutation_frequencies = python_trees["Mutation_ID"].value_counts().sort_index()[m
+ [m
+ fig, ax = plt.subplots(figsize=(10, 6))[m
+ [m
+ bar_width = 0.35[m
+ [m
+[31m-r_mutation_frequencies.plot(kind='bar', width=bar_width, position=0, align='center', color='b', alpha=0.5, label='R Trees', ax=ax)[m
+[31m-python_mutation_frequencies.plot(kind='bar', width=bar_width, position=1, align='center', color='r', alpha=0.5, label='Python Trees', ax=ax)[m
+[31m-[m
+[31m-ax.set_xlabel('Mutation ID')[m
+[31m-ax.set_ylabel('Frequency')[m
+[31m-ax.set_title('Mutation Frequencies Comparison')[m
+[32m+[m[32mr_mutation_frequencies.plot([m
+[32m+[m[32m    kind="bar",[m
+[32m+[m[32m    width=bar_width,[m
+[32m+[m[32m    position=0,[m
+[32m+[m[32m    align="center",[m
+[32m+[m[32m    color="b",[m
+[32m+[m[32m    alpha=0.5,[m
+[32m+[m[32m    label="R Trees",[m
+[32m+[m[32m    ax=ax,[m
+[32m+[m[32m)[m
+[32m+[m[32mpython_mutation_frequencies.plot([m
+[32m+[m[32m    kind="bar",[m
+[32m+[m[32m    width=bar_width,[m
+[32m+[m[32m    position=1,[m
+[32m+[m[32m    align="center",[m
+[32m+[m[32m    color="r",[m
+[32m+[m[32m    alpha=0.5,[m
+[32m+[m[32m    label="Python Trees",[m
+[32m+[m[32m    ax=ax,[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32max.set_xlabel("Mutation ID")[m
+[32m+[m[32max.set_ylabel("Frequency")[m
+[32m+[m[32max.set_title("Mutation Frequencies Comparison")[m
+ ax.legend()[m
+ [m
+ plt.tight_layout()[m
+ plt.show()[m
+[31m-[m
+[1mdiff --git a/warmup/plot_trees.py b/warmup/plot_trees.py[m
+[1mindex 73dd895..d1400e9 100644[m
+[1m--- a/warmup/plot_trees.py[m
+[1m+++ b/warmup/plot_trees.py[m
+[36m@@ -1,21 +1,22 @@[m
+ import pandas as pd[m
+ import matplotlib.pyplot as plt[m
+ [m
+[31m-r_trees_path = '/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv'[m
+[31m-python_trees_path = '/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_10000.csv'[m
+[32m+[m[32mr_trees_path = "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv"[m
+[32m+[m[32mpython_trees_path = "/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_10000.csv"[m
+ [m
+ r_trees = pd.read_csv(r_trees_path)[m
+ python_trees = pd.read_csv(python_trees_path)[m
+ [m
+[31m-r_tree_sizes = r_trees.groupby('Tree_ID').size()[m
+[31m-python_tree_sizes = python_trees.groupby('Tree_ID').size()[m
+[32m+[m[32mr_tree_sizes = r_trees.groupby("Tree_ID").size()[m
+[32m+[m[32mpython_tree_sizes = python_trees.groupby("Tree_ID").size()[m
+ [m
+[31m-bin_edges = [x - 0.5 for x in range(2, 12)] + [11.5]  [m
+[31m-plt.hist(r_tree_sizes, bins=bin_edges, alpha=0.5, edgecolor='k', label='R Trees')[m
+[31m-plt.hist(python_tree_sizes, bins=bin_edges, alpha=0.5, edgecolor='k', label='Python Trees')[m
+[31m-plt.xlabel('Tree Size')[m
+[31m-plt.ylabel('Frequency')[m
+[31m-plt.legend(loc='upper right')[m
+[31m-plt.title('Tree Size Distribution')[m
+[32m+[m[32mbin_edges = [x - 0.5 for x in range(2, 12)] + [11.5][m
+[32m+[m[32mplt.hist(r_tree_sizes, bins=bin_edges, alpha=0.5, edgecolor="k", label="R Trees")[m
+[32m+[m[32mplt.hist([m
+[32m+[m[32m    python_tree_sizes, bins=bin_edges, alpha=0.5, edgecolor="k", label="Python Trees"[m
+[32m+[m[32m)[m
+[32m+[m[32mplt.xlabel("Tree Size")[m
+[32m+[m[32mplt.ylabel("Frequency")[m
+[32m+[m[32mplt.legend(loc="upper right")[m
+[32m+[m[32mplt.title("Tree Size Distribution")[m
+ plt.show()[m
+[31m-[m
+[1mdiff --git a/warmup/subtree.py b/warmup/subtree.py[m
+[1mindex 0be796e..14ed810 100644[m
+[1m--- a/warmup/subtree.py[m
+[1m+++ b/warmup/subtree.py[m
+[36m@@ -1,52 +1,61 @@[m
+[31m-from anytree import Node, RenderTree [m
+[32m+[m[32mfrom anytree import Node, RenderTree[m
+ from itertools import combinations, product[m
+[31m-'''[m
+[32m+[m
+[32m+[m[32m"""[m
+ takes a variable number of lists as input and returns a list containing all possible combination of the input lists[m
+ in this case: takes a list of lists of subtrees (for each child one list of subtrees) as input, a subtree itself is a list of nodes[m
+ outputs all combinations of subtrees [m
+[31m-'''[m
+[32m+[m[32m"""[m
+[32m+[m
+[32m+[m
+ def all_combinations_of_elements(*lists):[m
+     n = len(lists)[m
+     all_combinations = [][m
+ [m
+[31m-    for r in range(1, n+1):[m
+[32m+[m[32m    for r in range(1, n + 1):[m
+         for list_combination in combinations(lists, r):[m
+             for element_combination in product(*list_combination):[m
+[31m-                all_combinations.append(list(element_combination))  [m
+[32m+[m[32m                all_combinations.append(list(element_combination))[m
+ [m
+     return all_combinations[m
+ [m
+[31m-'''creates a subtree given a subtree (nodes_list) and the root node'''[m
+[32m+[m
+[32m+[m[32m"""creates a subtree given a subtree (nodes_list) and the root node"""[m
+[32m+[m
+ [m
+ def create_subtree(original_root, nodes_list):[m
+     nodes_dict = {}[m
+[31m-    [m
+[32m+[m
+     for node in [original_root] + list(original_root.descendants):[m
+         if node in nodes_list:[m
+             parent_node = next((n for n in nodes_list if n is node.parent), None)[m
+             nodes_dict[node] = Node(node.name, parent=nodes_dict.get(parent_node))[m
+[31m-    [m
+[32m+[m
+     return nodes_dict.get(original_root)[m
+ [m
+[31m-'''returns a list of all subtrees of a tree, input is the root node[m
+[32m+[m
+[32m+[m[32m"""returns a list of all subtrees of a tree, input is the root node[m
+ a recursive approach is used: if one knows the subtrees of the children of the root node,[m
+ then one can find all combinations of the subtrees of the children and add the root node to each one of these combinations,[m
+[31m-this way one obtains all subtrees of the root node'''[m
+[32m+[m[32mthis way one obtains all subtrees of the root node"""[m
+[32m+[m
+ [m
+ def subtrees(node):[m
+     if not node.children:[m
+         return [[node]][m
+[31m-    [m
+[32m+[m
+     child_subtrees = [subtrees(child) for child in node.children][m
+[31m-    [m
+[32m+[m
+     combined_subtrees = all_combinations_of_elements(*child_subtrees)[m
+[31m-    [m
+[32m+[m
+     result_subtrees = [][m
+     result_subtrees.append([node])[m
+     for combination in combined_subtrees:[m
+[31m-        subtree_with_root = [node] + [item for sublist in combination for item in sublist]  [m
+[32m+[m[32m        subtree_with_root = [node] + [[m
+[32m+[m[32m            item for sublist in combination for item in sublist[m
+[32m+[m[32m        ][m
+         result_subtrees.append(subtree_with_root)[m
+[31m-    [m
+[32m+[m
+     return result_subtrees[m
+ [m
+ [m
+[36m@@ -61,13 +70,13 @@[m [mall_node_lists = subtrees(A)[m
+ all_node_lists = sorted(all_node_lists, key=len)[m
+ print(all_node_lists)[m
+ print("\n")[m
+[31m-all_subtrees=[][m
+[32m+[m[32mall_subtrees = [][m
+ [m
+ for nodes_list in all_node_lists:[m
+[31m-    subtree=create_subtree(A,nodes_list)[m
+[32m+[m[32m    subtree = create_subtree(A, nodes_list)[m
+     all_subtrees.append(subtree)[m
+ i = 1[m
+ for subtree in all_subtrees:[m
+     print(f"{i}. ")[m
+     print(RenderTree(subtree))[m
+[31m-    i += 1    [m
+[32m+[m[32m    i += 1[m
+[1mdiff --git a/warmup/write_csv.py b/warmup/write_csv.py[m
+[1mindex a5b888d..a06c8f3 100644[m
+[1m--- a/warmup/write_csv.py[m
+[1m+++ b/warmup/write_csv.py[m
+[36m@@ -1,20 +1,24 @@[m
+ import csv[m
+ import numpy as np[m
+ from anytree import Node[m
+[31m-import _simulate [m
+[32m+[m[32mimport pmhn._trees._simulate as _simulate[m
+[32m+[m
+ [m
+ def csv_to_numpy(file_path):[m
+[31m-    with open(file_path, 'r') as file:[m
+[32m+[m[32m    with open(file_path, "r") as file:[m
+         reader = csv.reader(file)[m
+         next(reader)[m
+         data_list = list(reader)[m
+     return np.array(data_list, dtype=float)[m
+ [m
+[32m+[m
+ def write_trees_to_csv(trees, output_file_path):[m
+[31m-    with open(output_file_path, 'w', newline='') as file:[m
+[32m+[m[32m    with open(output_file_path, "w", newline="") as file:[m
+         writer = csv.writer(file)[m
+[31m-        writer.writerow(["Patient_ID", "Tree_ID", "Node_ID", "Mutation_ID", "Parent_ID"])[m
+[31m-        [m
+[32m+[m[32m        writer.writerow([m
+[32m+[m[32m            ["Patient_ID", "Tree_ID", "Node_ID", "Mutation_ID", "Parent_ID"][m
+[32m+[m[32m        )[m
+[32m+[m
+         patient_id = 0[m
+         for tree_dict in trees:[m
+             patient_id += 1[m
+[36m@@ -26,22 +30,29 @@[m [mdef write_trees_to_csv(trees, output_file_path):[m
+                 parent_id = node.parent.name if node.parent else node_id[m
+                 writer.writerow([patient_id, tree_id, node_id, mutation_id, parent_id])[m
+ [m
+[32m+[m
+ if __name__ == "__main__":[m
+     mhn_file_path = "/home/laukeller/BSc Thesis/TreeMHN/Example/MHN_Matrix.csv"[m
+     mhn_array = csv_to_numpy(mhn_file_path)[m
+     print(mhn_array)[m
+[31m-    [m
+[32m+[m
+     rng = np.random.default_rng()[m
+[31m-    theta = mhn_array [m
+[31m-    mean_sampling_time = 1.0  [m
+[31m-    [m
+[31m-    tree_counts = [2000, 5000, 10000, 50000][m
+[31m-    [m
+[32m+[m[32m    theta = mhn_array[m
+[32m+[m[32m    mean_sampling_time = 1.0[m
+[32m+[m
+[32m+[m[32m    tree_counts = [500, 5000, 10000, 50000][m
+[32m+[m
+     min_tree_size = 2[m
+     max_tree_size = 11[m
+     for n_points in tree_counts:[m
+[31m-        trees_file_path = f"/home/laukeller/BSc Thesis/pMHN/src/pmhn/_trees/trees_{n_points}.csv"[m
+[31m-        [m
+[31m-        _, trees = _simulate.simulate_trees(rng, n_points, theta, mean_sampling_time, min_tree_size = min_tree_size, max_tree_size = max_tree_size)[m
+[31m-        write_trees_to_csv(trees, trees_file_path)[m
+[32m+[m[32m        trees_file_path = f"/home/laukeller/BSc Thesis/pMHN/warmup/trees_{n_points}.csv"[m
+ [m
+[32m+[m[32m        trees = _simulate.simulate_trees([m
+[32m+[m[32m            rng,[m
+[32m+[m[32m            n_points,[m
+[32m+[m[32m            theta,[m
+[32m+[m[32m            mean_sampling_time,[m
+[32m+[m[32m            min_tree_size=min_tree_size,[m
+[32m+[m[32m            max_tree_size=max_tree_size,[m
+[32m+[m[32m        )[m
+[32m+[m[32m        write_trees_to_csv(trees, trees_file_path)[m
