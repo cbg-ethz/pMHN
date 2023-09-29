@@ -24,12 +24,14 @@ def test_generate_valid_tree():
         ]
     )
     mean_sampling_time = 1.0
-    sampling_time = rng.exponential(scale = mean_sampling_time)
+    sampling_time = rng.exponential(scale=mean_sampling_time)
     min_tree_size = 2
     max_tree_size = 11
 
     for _ in range(10000):
-        tree, sampling_time = simulate.generate_valid_tree(rng, theta, sampling_time,mean_sampling_time, min_tree_size, max_tree_size)
+        tree, sampling_time = simulate.generate_valid_tree(
+            rng, theta, sampling_time, mean_sampling_time, min_tree_size, max_tree_size
+        )
 
         assert min_tree_size <= len(tree) <= max_tree_size
 
@@ -58,11 +60,12 @@ def test_generate_tree_no_size_constraints():
         ]
     )
     mean_sampling_time = 1.0
-    sampling_time = rng.exponential(scale = mean_sampling_time)
-
+    sampling_time = rng.exponential(scale=mean_sampling_time)
 
     for _ in range(10000):
-        tree, sampling_time = simulate.generate_valid_tree(rng, theta, sampling_time, mean_sampling_time=mean_sampling_time)
+        tree, sampling_time = simulate.generate_valid_tree(
+            rng, theta, sampling_time, mean_sampling_time=mean_sampling_time
+        )
 
         for node, time in tree.items():
             assert time < sampling_time
@@ -88,13 +91,17 @@ def test_generate_tree_no_min_size_constraint():
         ]
     )
     mean_sampling_time = 1.0
-    sampling_time = rng.exponential(scale = mean_sampling_time)
+    sampling_time = rng.exponential(scale=mean_sampling_time)
 
     max_tree_size = 8
 
     for _ in range(10000):
         tree, sampling_time = simulate.generate_valid_tree(
-            rng, theta, sampling_time, mean_sampling_time=mean_sampling_time, max_tree_size=max_tree_size
+            rng,
+            theta,
+            sampling_time,
+            mean_sampling_time=mean_sampling_time,
+            max_tree_size=max_tree_size,
         )
         assert len(tree) <= max_tree_size
 
@@ -122,13 +129,17 @@ def test_generate_tree_no_max_size_constraint():
         ]
     )
     mean_sampling_time = 1.0
-    sampling_time = rng.exponential(scale = mean_sampling_time)
+    sampling_time = rng.exponential(scale=mean_sampling_time)
 
     min_tree_size = 3
 
     for _ in range(10000):
         tree, sampling_time = simulate.generate_valid_tree(
-            rng, theta, sampling_time, mean_sampling_time=mean_sampling_time, min_tree_size=min_tree_size
+            rng,
+            theta,
+            sampling_time,
+            mean_sampling_time=mean_sampling_time,
+            min_tree_size=min_tree_size,
         )
 
         assert len(tree) >= min_tree_size
