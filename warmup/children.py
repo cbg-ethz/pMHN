@@ -9,8 +9,7 @@ F = Node("F", parent=C)
 
 all_nodes = list(PreOrderIter(A))
 print(RenderTree(A))
-children={}
+children = {}
 for node in all_nodes:
     children[node.name] = [child.name for child in node.children]
-print(children)    
-
+print(children)
