@@ -6,7 +6,7 @@ import seaborn as sns
 def plot_genotypes(
     genotypes: np.ndarray,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     patients_on_x_axis: bool = True,
     patients_label: str = "Patients",
     genes_label: str = "Genes",
@@ -40,7 +40,7 @@ def plot_genotypes(
 
 def plot_genotype_samples(
     genotype_samples: np.ndarray,
-) -> tuple[plt.Figure, np.ndarray]:
+) -> tuple[plt.Figure, np.ndarray]:  # type: ignore
     fig, axs = plt.subplots(
         len(genotype_samples), 1, figsize=(15, 2 * len(genotype_samples))
     )
