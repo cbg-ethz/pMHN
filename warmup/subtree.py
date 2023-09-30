@@ -1,14 +1,14 @@
 from anytree import Node, RenderTree
 from itertools import combinations, product
 
-"""
-takes a variable number of lists as input and returns a list containing all possible combination of the input lists
-in this case: takes a list of lists of subtrees (for each child one list of subtrees) as input, a subtree itself is a list of nodes
-outputs all combinations of subtrees 
-"""
-
 
 def all_combinations_of_elements(*lists):
+    """
+    takes a variable number of lists as input and returns a list containing all possible
+    combination of the input lists in this case: takes a list of lists of subtrees
+    (for each child one list of subtrees) as input, a subtree itself is a list of nodes
+    outputs all combinations of subtrees
+    """
     n = len(lists)
     all_combinations = []
 
@@ -20,10 +20,10 @@ def all_combinations_of_elements(*lists):
     return all_combinations
 
 
-"""creates a subtree given a subtree (nodes_list) and the root node"""
-
-
 def create_subtree(original_root, nodes_list):
+    """
+    creates a subtree given a subtree (nodes_list) and the root node
+    """
     nodes_dict = {}
 
     for node in [original_root] + list(original_root.descendants):
@@ -34,13 +34,14 @@ def create_subtree(original_root, nodes_list):
     return nodes_dict.get(original_root)
 
 
-"""returns a list of all subtrees of a tree, input is the root node
-a recursive approach is used: if one knows the subtrees of the children of the root node,
-then one can find all combinations of the subtrees of the children and add the root node to each one of these combinations,
-this way one obtains all subtrees of the root node"""
-
-
 def subtrees(node):
+    """
+    returns a list of all subtrees of a tree, input is the root node
+    a recursive approach is used: if one knows the subtrees of the
+    children of the root node, then one can find all combinations of
+    the subtrees of the children and add the root node to each one
+    of these combinations, this way one obtains all subtrees of the root node
+    """
     if not node.children:
         return [[node]]
 

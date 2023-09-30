@@ -161,7 +161,8 @@ def test_find_possible_mutations_normal():
 
 def test_find_possible_mutations_edge():
     """
-    We want to test if the possible_mutations list is correct. old_mutations with mutations on the edge.
+    We want to test if the possible_mutations list is correct. old_mutations
+    with mutations on the edge.
     """
 
     old_mutations = [1, 10]
@@ -173,7 +174,8 @@ def test_find_possible_mutations_edge():
 
 def test_find_possible_mutations_except_positive():
     """
-    We want to test if an exception is correctly thrown when the old_mutations list is invalid (mutation number too large).
+    We want to test if an exception is correctly thrown when the
+    old_mutations list is invalid (mutation number too large).
     """
     old_mutations = [212, 1, 3, 7]
     n_mutations = 10
@@ -188,7 +190,8 @@ def test_find_possible_mutations_except_positive():
 
 def test_find_possible_mutations_except_negative():
     """
-    We want to test if an exception is correctly thrown when the old_mutations list is invalid (mutation number too small).
+    We want to test if an exception is correctly thrown
+    when the old_mutations list is invalid (mutation number too small).
     """
     old_mutations = [-23, 0, 5]
     n_mutations = 10
