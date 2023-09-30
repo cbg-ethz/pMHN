@@ -1,8 +1,6 @@
-from typing import Union, Sequence
+from typing import Union, Sequence, Optional
 from anytree import Node
 import numpy as np
-
-from pmhn._trees._interfaces import Tree
 
 
 def generate_valid_tree(
@@ -10,9 +8,9 @@ def generate_valid_tree(
     theta: np.ndarray,
     sampling_time: float,
     mean_sampling_time: float,
-    min_tree_size: int = None,
-    max_tree_size: int = None,
-) -> Tree:
+    min_tree_size: Optional[int] = None,
+    max_tree_size: Optional[int] = None,
+) -> tuple[dict[Node, float], float]:
     """
     Generates a single valid tree with known sampling time.
 
@@ -75,8 +73,8 @@ def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list
 
 
 def _simulate_tree(
-    rng, theta: np.ndarray, sampling_time: float, max_tree_size: int = None
-) -> Tree:
+    rng, theta: np.ndarray, sampling_time: float, max_tree_size: Optional[int] = None
+) -> dict[Node, float]:
     """Simulates a single tree with known sampling time.
 
     Args:
@@ -111,7 +109,7 @@ def _simulate_tree(
         U_next = []
         for node in U_current:
             path = list(node.path)
-            old_mutations = [node.name for node in path]
+            old_mutations = [node.name for node in path]  # type: ignore
             possible_mutations = _find_possible_mutations(
                 old_mutations=old_mutations, n_mutations=n_mutations
             )
@@ -126,7 +124,7 @@ def _simulate_tree(
                 for anc in [
                     ancestor for ancestor in node.path if ancestor.parent is not None
                 ]:
-                    lamb += theta[j - 1][anc.name - 1]
+                    lamb += theta[j - 1][anc.name - 1]  # type: ignore
                 lamb = np.exp(lamb)
                 waiting_time = node_time_map[node] + rng.exponential(1.0 / lamb)
                 if waiting_time < sampling_time:
@@ -152,9 +150,9 @@ def simulate_trees(
     n_points: int,
     theta: np.ndarray,
     mean_sampling_time: Union[np.ndarray, float, Sequence[float]],
-    min_tree_size: int = None,
-    max_tree_size: int = None,
-) -> tuple[np.ndarray, list[Tree]]:
+    min_tree_size: Optional[int] = None,
+    max_tree_size: Optional[int] = None,
+) -> tuple[np.ndarray, list[dict[Node, float]]]:
     """Simulates a data set of trees with known sampling times.
 
     Args:
@@ -198,21 +196,19 @@ def simulate_trees(
 
     sampling_times = rng.exponential(scale=mean_sampling_time, size=n_points)
 
-    trees, sampling_times = zip(
-        *[
-            generate_valid_tree(
-                rng,
-                theta=th,
-                sampling_time=t_s,
-                mean_sampling_time=ms,
-                min_tree_size=min_tree_size,
-                max_tree_size=max_tree_size,
-            )
-            for th, t_s, ms in zip(theta, sampling_times, mean_sampling_time)
-        ]
-    )
+    generated_trees_and_times = [
+        generate_valid_tree(
+            rng,
+            theta=th,
+            sampling_time=t_s,
+            mean_sampling_time=ms,
+            min_tree_size=min_tree_size,
+            max_tree_size=max_tree_size,
+        )
+        for th, t_s, ms in zip(theta, sampling_times, mean_sampling_time)
+    ]
 
-    trees = list(trees)
-    sampling_times = list(sampling_times)
+    trees = [tree for tree, _ in generated_trees_and_times]
+    sampling_times = np.array([time for _, time in generated_trees_and_times])
 
     return sampling_times, trees
