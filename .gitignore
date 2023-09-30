@@ -1,3 +1,6 @@
+# We use convention that poetry.lock is not committed
+poetry.lock
+
 # Jupyter Notebooks are disallowed by default
 # Use Quarto Notebook (*.qmd) instead
 *.ipynb
