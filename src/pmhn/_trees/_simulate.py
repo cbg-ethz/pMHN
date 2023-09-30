@@ -47,21 +47,25 @@ def generate_valid_tree(
 def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list[int]:
     """
     Args:
-        old_mutations: list of ancestor mutations of a given node (including the node itself)
+        old_mutations: list of ancestor mutations of
+            a given node (including the node itself)
         n_mutations: total number of mutations
     Returns:
         a list of possible mutations that could appear next for a given node
 
     Note:
-        We assume that mutations are labeled with a number between 1 and n_mutations,
-        so each element in old_mutations should be in that range (except for the root node = mutation 0).
+        We assume that mutations are labeled with a number between
+        1 and n_mutations,
+        so each element in old_mutations should be in that range
+        (except for the root node = mutation 0).
         If this assumption is violated, an exception is raised.
 
     """
     for mutation in old_mutations:
         if mutation > n_mutations or mutation < 0:
             raise ValueError(
-                f"Invalid mutation {mutation} in old_mutations. It should be 0 <= mutation <= {n_mutations}."
+                f"Invalid mutation {mutation} in old_mutations."
+                f" It should be 0 <= mutation <= {n_mutations}."
             )
 
     possible_mutations = list(
@@ -114,15 +118,17 @@ def _simulate_tree(
             for j in possible_mutations:
                 new_node = Node(j, parent=node)
                 # Here j lies in the range of 1 to n_mutations inclusive.
-                # However, Python uses 0-based indexing for arrays. Therefore, we subtract 1 from j when accessing
-                # elements in the log-theta matrix to correctly map the 1-indexed mutation to the 0-indexed matrix position.
-                l = theta[j - 1][j - 1]
+                # However, Python uses 0-based indexing for arrays. Therefore,
+                # we subtract 1 from j when accessing elements in the
+                # log-theta matrix to correctly map the 1-indexed mutation
+                # to the 0-indexed matrix position.
+                lamb = theta[j - 1][j - 1]
                 for anc in [
                     ancestor for ancestor in node.path if ancestor.parent is not None
                 ]:
-                    l += theta[j - 1][anc.name - 1]
-                l = np.exp(l)
-                waiting_time = node_time_map[node] + rng.exponential(1.0 / l)
+                    lamb += theta[j - 1][anc.name - 1]
+                lamb = np.exp(lamb)
+                waiting_time = node_time_map[node] + rng.exponential(1.0 / lamb)
                 if waiting_time < sampling_time:
                     node_time_map[new_node] = waiting_time
                     U_next.append(new_node)

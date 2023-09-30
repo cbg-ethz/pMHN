@@ -1,6 +1,5 @@
 import csv
 import numpy as np
-from anytree import Node
 import pmhn._trees._simulate as _simulate
 
 
