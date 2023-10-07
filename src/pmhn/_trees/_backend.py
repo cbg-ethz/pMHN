@@ -2,7 +2,6 @@ from typing import Protocol
 
 
 import numpy as np
-from anytree import RenderTree
 from scipy.sparse.linalg import spsolve_triangular
 from scipy.sparse import csr_matrix
 from pmhn._trees._interfaces import Tree
@@ -75,8 +74,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         """
 
         subtrees = create_all_subtrees(tree)
-        for subtree in subtrees:
-            print(RenderTree(subtree))
         subtrees_size = len(subtrees)
         Q = np.zeros((subtrees_size, subtrees_size))
         for i in range(subtrees_size):
@@ -117,7 +114,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                         )
                     )
                 )
-                print(exit_mutations)
                 for mutation in exit_mutations:
                     lamb = 0
                     exit_subclone = [
@@ -125,13 +121,10 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                         for anc in node.path
                         if anc.parent is not None
                     ] + [mutation]
-                    print(exit_subclone)
                     for j in exit_subclone:
                         lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
                     lamb_sum -= lamb
-                    print(lamb)
-                    print(node.children)
                 for child in node.children:
                     next_nodes.append(child)
             current_nodes = next_nodes
@@ -185,11 +178,10 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         b = np.zeros(V_size)
         b[0] = 1
         V_transposed = V.transpose()
-        print(V_transposed)
         V_csr = csr_matrix(V_transposed)
         x = spsolve_triangular(V_csr, b, lower=True)
 
-        return np.log(x[V_size - 1]) + np.log(sampling_rate)
+        return np.log(x[V_size - 1] + 1e-10) + np.log(sampling_rate)
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
         """Calculates the partial derivatives of `log P(tree | theta)`

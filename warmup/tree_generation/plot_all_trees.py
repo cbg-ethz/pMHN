@@ -4,23 +4,22 @@ import matplotlib.pyplot as plt
 
 paths = {
     500: (
-        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_500.csv",
-        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_500.csv",
+        "trees_R_data/trees_500.csv",
+        "trees_py_data/trees_500.csv",
     ),
     5000: (
-        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_5000.csv",
-        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_5000.csv",
+        "trees_R_data/trees_5000.csv",
+        "trees_py_data/trees_5000.csv",
     ),
     10000: (
-        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_10000.csv",
-        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_10000.csv",
+        "trees_R_data/trees_10000.csv",
+        "trees_py_data/trees_10000.csv",
     ),
     50000: (
-        "/home/laukeller/BSc Thesis/TreeMHN/Example/trees_50000.csv",
-        "/home/laukeller/BSc Thesis/pMHN/warmup/trees_50000.csv",
+        "trees_R_data/trees_50000.csv",
+        "trees_py_data/trees_50000.csv",
     ),
 }
-
 
 fig, axs = plt.subplots(2, 2, figsize=(10, 10))  # 2x2 grid of subplots
 axs = axs.ravel()
