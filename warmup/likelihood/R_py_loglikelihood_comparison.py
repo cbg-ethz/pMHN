@@ -68,5 +68,5 @@ if np.allclose(log_vec_py_AML, log_vec_R_AML, 1e-10):
 if np.allclose(log_vec_py_500, log_vec_R_500, 1e-10):
     print(
         "The loglikelihoods of the 500 randomly generated"
-        "trees are the same in R and Python."
+        " trees are the same in R and Python."
     )
