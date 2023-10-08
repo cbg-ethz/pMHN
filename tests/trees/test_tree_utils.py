@@ -4,7 +4,7 @@ from anytree import Node
 
 def test_create_all_subtrees_simple():
     """
-    Checks for a simple tree if all subtrees are found.
+    Checks for a simple tree if all subtrees are found using create_all_subtrees.
     """
     A = Node(name=0)
     Node(name=1, parent=A)
@@ -82,8 +82,8 @@ def test_create_all_subtrees_medium():
 
 def test_bfs_compare_long():
     r"""
-    Checks for a tree if it is a subtree of another tree
-    and is smaller in size by one using bfs_compare.
+    Tests if bfs_compare successfully returns the additional node
+    if a tree is a subtree of another tree and is smaller in size by one.
 
     first tree:
         0
@@ -125,14 +125,15 @@ def test_bfs_compare_long():
     E_ = Node(4, parent=D_)
     F_ = Node(5, parent=E_)
 
-    assert check_equality(bfs_compare(A, A_), F_)
+    assert bfs_compare(A, A_) == F_
 
 
 def test_bfs_compare_complex():
     r"""
 
-    Checks for a tree if it is a subtree of another tree 
-    and is smaller in size by one using bfs_compare.
+    Tests if bfs_compare successfully returns the additional node
+    if a tree is a subtree of another tree and is smaller in size by one.
+
     
     first tree:
         0
@@ -174,4 +175,4 @@ def test_bfs_compare_complex():
     Node(2, parent=G_)
     J_ = Node(3, parent=C_)
 
-    assert check_equality(bfs_compare(A, A_), J_)
+    assert bfs_compare(A, A_) == J_

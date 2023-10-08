@@ -45,13 +45,13 @@ log_vec_py_500 = np.empty(len(trees_500))
 backend = OriginalTreeMHNBackend()
 
 for idx, tree in trees_AML.items():
-    print(f"Processing tree {idx + 1} of {len(trees_AML)}")
+    print(f"Processing tree {idx} of {len(trees_AML)}")
     log_value = backend.loglikelihood(tree, theta_AML, sampling_rate)
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
 
 for idx, tree in trees_500.items():
-    print(f"Processing tree {idx + 1} of {len(trees_500)}")
+    print(f"Processing tree {idx} of {len(trees_500)}")
     log_value = backend.loglikelihood(tree, theta_500, sampling_rate)
     log_vec_py_500[idx - 1] = log_value
     print(f"log_value: {log_value}")
@@ -62,10 +62,10 @@ np.savetxt("likelihood_py/log_vec_py_500.csv", log_vec_py_500, delimiter=",")
 
 
 # check if the loglikelihood vectors are the same
-if np.allclose(log_vec_py_AML, log_vec_R_AML, 1e-10):
+if np.allclose(log_vec_py_AML, log_vec_R_AML, atol=1e-10):
     print("The loglikelihoods of the AML trees are the same in R and Python.")
 
-if np.allclose(log_vec_py_500, log_vec_R_500, 1e-10):
+if np.allclose(log_vec_py_500, log_vec_R_500, atol=1e-10):
     print(
         "The loglikelihoods of the 500 randomly generated"
         " trees are the same in R and Python."
