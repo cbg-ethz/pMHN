@@ -328,7 +328,7 @@ def test_likelihood_small_tree():
 
 def test_likelihood_medium_tree():
     """ 
-   Checks if the likelihood of a small tree is calculated
+   Checks if the likelihood of a medium-sized tree is calculated
    correctly.
    
    tree:
@@ -371,7 +371,7 @@ def test_likelihood_medium_tree():
 
 def test_likelihood_large_tree():
     """ 
-   Checks if the likelihood of a small tree is calculated
+   Checks if the likelihood of a large tree is calculated
    correctly.
    
    tree:
