@@ -32,7 +32,13 @@ sampling_rate = 1.0
 # use modified io
 naming = io.ForestNaming(
     tree_name="Tree_ID",
-    naming=io.TreeNaming(node="Node_ID", parent="Parent_ID", mutation="Mutation_ID"),
+    naming=io.TreeNaming(
+        node="Node_ID",
+        parent="Parent_ID",
+        data={
+            "Mutation_ID": "mutation",
+        },
+    ),
 )
 
 # parse trees

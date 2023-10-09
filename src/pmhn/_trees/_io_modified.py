@@ -33,7 +33,9 @@ class TreeNaming:
 
     node: str = "Node_ID"
     parent: str = "Parent_ID"
-    mutation: str = "Mutation_ID"
+    data: dict[str, str] = dataclasses.field(
+        default_factory=lambda: {"Mutation_ID": "mutation"}
+    )
 
 
 @dataclasses.dataclass
@@ -50,13 +52,25 @@ class ForestNaming:
 
 
 def parse_tree(df: pd.DataFrame, naming: TreeNaming) -> anytree.Node:
+    """Parses a data frame into a tree
+
+    Args:
+        df: data frame with columns specified in `naming`.
+        naming: specifies the columns that should be present in `df`
+
+    Returns:
+        the root node of the tree
+    """
     root = None
     nodes = {}  # Maps a NodeID value to Node
 
     for _, row in df.iterrows():
         node_id = row[naming.node]
         parent_id = row[naming.parent]
-        node_name = row[naming.mutation]
+        values = {val: row[key] for key, val in naming.data.items()}
+
+        if node_id in nodes:
+            raise ValueError(f"Node {node_id} already exists.")
 
         # We found the root
         if node_id == parent_id:
@@ -65,11 +79,12 @@ def parse_tree(df: pd.DataFrame, naming: TreeNaming) -> anytree.Node:
                     f"Root is {root}, but {node_id} == {parent_id} "
                     "also looks like a root."
                 )
-            root = anytree.Node(name=node_name, parent=None)
+            root = anytree.Node(values["mutation"], parent=None, **values)
             nodes[node_id] = root
         else:
-            parent_node = nodes[parent_id]
-            nodes[node_id] = anytree.Node(name=node_name, parent=parent_node)
+            nodes[node_id] = anytree.Node(
+                values["mutation"], parent=nodes[parent_id], **values
+            )
 
     if root is None:
         raise ValueError("No root found.")
