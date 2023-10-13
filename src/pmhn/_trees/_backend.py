@@ -59,6 +59,11 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
+    def __init__(self, jitter: float = 1e-10):
+        self._jitter = jitter
+
+    _jitter: float
+
     def create_V_Mat(
         self, tree: Node, theta: np.ndarray, sampling_rate: float
     ) -> np.ndarray:
@@ -181,7 +186,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         V_csr = csr_matrix(V_transposed)
         x = spsolve_triangular(V_csr, b, lower=True)
 
-        return np.log(x[V_size - 1] + 1e-10) + np.log(sampling_rate)
+        return np.log(x[V_size - 1] + self._jitter) + np.log(sampling_rate)
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
         """Calculates the partial derivatives of `log P(tree | theta)`

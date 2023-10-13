@@ -67,7 +67,7 @@ def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list
             )
 
     possible_mutations = list(
-        set([i + 1 for i in range(n_mutations)]).difference(set(old_mutations))
+        set(range(1, n_mutations + 1)).difference(set(old_mutations))
     )
     return possible_mutations
 

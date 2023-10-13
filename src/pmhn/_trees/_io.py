@@ -52,7 +52,7 @@ class ForestNaming:
 
 
 def parse_tree(df: pd.DataFrame, naming: TreeNaming) -> anytree.Node:
-    """Parses a data frame into a tree.
+    """Parses a data frame into a tree
 
     Args:
         df: data frame with columns specified in `naming`.
@@ -79,10 +79,12 @@ def parse_tree(df: pd.DataFrame, naming: TreeNaming) -> anytree.Node:
                     f"Root is {root}, but {node_id} == {parent_id} "
                     "also looks like a root."
                 )
-            root = anytree.Node(node_id, parent=None, **values)
+            root = anytree.Node(values["mutation"], parent=None, **values)
             nodes[node_id] = root
         else:
-            nodes[node_id] = anytree.Node(node_id, parent=nodes[parent_id], **values)
+            nodes[node_id] = anytree.Node(
+                values["mutation"], parent=nodes[parent_id], **values
+            )
 
     if root is None:
         raise ValueError("No root found.")
