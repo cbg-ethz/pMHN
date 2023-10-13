@@ -1,5 +1,5 @@
 import pandas as pd
-import pmhn._trees._io_modified as io
+import pmhn._trees._io as io
 from pmhn._trees._backend import OriginalTreeMHNBackend
 import csv
 import numpy as np

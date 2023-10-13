@@ -64,6 +64,11 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
+    def __init__(self, jitter: float = 1e-10):
+        self._jitter = jitter
+
+    _jitter: float
+
     def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
         """
         Calculates a diagonal entry of the V matrix.
@@ -169,7 +174,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                 x[i] -= val * x[index]
             x[i] /= V_diag
 
-        return np.log(x[-1] + 1e-10) + np.log(sampling_rate)
+        return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
         """Calculates the partial derivatives of `log P(tree | theta)`

@@ -5,27 +5,54 @@ from typing import Optional
 
 def all_combinations_of_elements(*lists):
     """
-    Takes a variable number of lists as input and returns a list
-    containing all possible combination of the input lists. In our
-    use case: It takes a list of lists of subtrees (for each child
-    one list of subtrees) as input where a subtree itself is a list
-    of nodes and outputs all combinations of subtrees.
+    Takes a variable number of lists as input and returns a generator that yields
+    all possible combinations of the input lists. In our use case: It takes a list 
+    of lists of subtrees as input where a subtree itself is a list of nodes and 
+    outputs all possible combinations of the lists of subtrees.
 
+    For instance, if we have the following tree:
+      
+        0 
+     /  |  \
+    1   3   2   
+    |      
+    2
+      
+    and assumed that we know the list of subtrees for the trees:
+      
+        1  
+        |    -> list of subtrees: [[1], [1, 2]]
+        2
+
+        3    -> list of subtrees: [[3]]
+
+    and 
+
+        2    -> list of subtrees: [[2]]
+
+    , we can find the subtrees of the original tree by looking at
+    all possible combinations of the list of subtrees for the trees above
+    and add the root node (0) to each combination (this is done in the
+    get_subtrees function).
+    
+    So the input would be [[[1], [1, 2]],[[3]], [[2]]] 
+    
+    The generator would yield the following combinations one at a time:
+    [[1]], [[1, 2]], [[3]], [[2]], [[1], [3]], [[1, 2], [3]], [[1], [2]],
+    [[1, 2], [2]], [[3], [2]], [[1], [3], [2]], [[1, 2], [3], [2]]
+    
     Args:
         *lists: any number of lists
 
     Returns:
-           all combinations of the input lists
+        A generator that yields all combinations of the input lists. 
+
     """
     n = len(lists)
-    all_combinations = []
-
     for r in range(1, n + 1):
         for list_combination in combinations(lists, r):
             for element_combination in product(*list_combination):
-                all_combinations.append(list(element_combination))
-
-    return all_combinations
+                yield list(element_combination)
 
 
 def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
@@ -47,23 +74,18 @@ def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
     return nodes_dict[original_root]
 
 
-def get_subtrees(node: Node) -> list[list[Node]]:
-    """
-    Creates a list of all subtrees of a tree.
-    A recursive approach is employed: If one knows the subtrees of the
-    children of the root node, then one can find all combinations of
-    the subtrees of the children and add the root node to each one
-    of these combinations, this way one obtains all subtrees of the original tree.
+def get_subtrees(node: Node, memo: Optional[dict] = None) -> list[list[Node]]:
+    if memo is None:
+        memo = {}
 
-    Args:
-        node: the root node
-    Returns:
-           a list of subtrees
-    """
+    if node in memo:
+        return memo[node]
+
     if not node.children:
+        memo[node] = [[node]]
         return [[node]]
 
-    child_subtrees = [get_subtrees(child) for child in node.children]
+    child_subtrees = [get_subtrees(child, memo) for child in node.children]
 
     combined_subtrees = all_combinations_of_elements(*child_subtrees)
 
@@ -74,6 +96,8 @@ def get_subtrees(node: Node) -> list[list[Node]]:
             item for sublist in combination for item in sublist
         ]
         result_subtrees.append(subtree_with_root)
+
+    memo[node] = result_subtrees
 
     return result_subtrees
 
