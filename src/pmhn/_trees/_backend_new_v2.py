@@ -86,15 +86,11 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         while len(current_nodes) != 0:
             next_nodes = []
             for node in current_nodes:
-                tree_mutations = list(node.path) + list(node.children)
-                exit_mutations = list(
-                    set(all_mut).difference(
-                        set(
-                            [
-                                tree_mutation.name  # type: ignore
-                                for tree_mutation in tree_mutations
-                            ]
-                        )
+                tree_mutations = set(node.path).union(node.children)
+                exit_mutations = all_mut.difference(
+                    set(
+                        tree_mutation.name  # type: ignore
+                        for tree_mutation in tree_mutations
                     )
                 )
                 for mutation in exit_mutations:
@@ -166,10 +162,10 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             for j, (subtree_j, subtree_size_j) in enumerate(
                 tree._subtrees_dict.items()
             ):
-                if i == j:
-                    V_diag = sampling_rate - self.diag_entry(subtree_i, theta, all_mut)
-                elif subtree_size_i - subtree_size_j == 1:
+                if subtree_size_i - subtree_size_j == 1:
                     V_col[j] = -self.off_diag_entry(subtree_j, subtree_i, theta)
+                elif i == j:
+                    V_diag = sampling_rate - self.diag_entry(subtree_i, theta, all_mut)
             for index, val in V_col.items():
                 x[i] -= val * x[index]
             x[i] /= V_diag

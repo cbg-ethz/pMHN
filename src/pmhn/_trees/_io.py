@@ -79,7 +79,7 @@ def parse_tree(df: pd.DataFrame, naming: TreeNaming) -> anytree.Node:
                     f"Root is {root}, but {node_id} == {parent_id} "
                     "also looks like a root."
                 )
-            root = anytree.Node(values[next(iter(values))], parent=None, **values)
+            root = anytree.Node(values["mutation"], parent=None, **values)
             nodes[node_id] = root
         else:
             nodes[node_id] = anytree.Node(
