@@ -75,6 +75,15 @@ def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
 
 
 def get_subtrees(node: Node, memo: Optional[dict] = None) -> list[list[Node]]:
+    """
+    Creates a list of all subtrees of a tree.
+
+
+    Args:
+        node: the root node
+    Returns:
+           a list of subtrees where each subtree is a list of nodes
+    """
     if memo is None:
         memo = {}
 
