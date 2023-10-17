@@ -158,8 +158,8 @@ def check_equality(tree1: Optional[Node], tree2: Optional[Node]) -> bool:
         if len(tree1.descendants) != len(tree2.descendants):
             return False
     for nodes1, nodes2 in zip(iter1, iter2):
-        set_nodes1_lineages = {tuple(get_lineage(node)) for node in nodes1}
-        set_nodes2_lineages = {tuple(get_lineage(node)) for node in nodes2}
+        set_nodes1_lineages = {get_lineage(node) for node in nodes1}
+        set_nodes2_lineages = {get_lineage(node) for node in nodes2}
         additional_nodes_lineages = set_nodes2_lineages ^ set_nodes1_lineages
         if len(additional_nodes_lineages) != 0:
             return False

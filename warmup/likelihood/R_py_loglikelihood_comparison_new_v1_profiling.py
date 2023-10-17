@@ -3,6 +3,8 @@ import pmhn._trees._io as io
 from pmhn._trees._backend_new_v1 import OriginalTreeMHNBackend, LoglikelihoodSingleTree
 import csv
 import numpy as np
+import pstats
+import cProfile
 
 
 def csv_to_numpy(file_path):
@@ -49,7 +51,8 @@ trees_500 = io.parse_forest(df_500, naming=naming)
 log_vec_py_AML = np.empty(len(trees_AML))
 log_vec_py_500 = np.empty(len(trees_500))
 backend = OriginalTreeMHNBackend()
-
+profiler = cProfile.Profile()
+profiler.enable()
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
     tree_log = LoglikelihoodSingleTree(tree)
@@ -63,6 +66,7 @@ for idx, tree in trees_500.items():
     log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate)
     log_vec_py_500[idx - 1] = log_value
     print(f"log_value: {log_value}")
+profiler.disable()
 
 # write Python loglikelihoods to CSV
 np.savetxt("likelihood_py/log_vec_py_AML.csv", log_vec_py_AML, delimiter=",")
@@ -78,3 +82,5 @@ if np.allclose(log_vec_py_500, log_vec_R_500, atol=1e-10):
         "The loglikelihoods of the 500 randomly generated"
         " trees are the same in R and Python."
     )
+stats = pstats.Stats(profiler).sort_stats("cumtime")  # Sort by cumulative time spent
+stats.print_stats()
