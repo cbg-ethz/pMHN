@@ -31,8 +31,7 @@ def write_trees_to_csv(trees, output_file_path):
 
 
 if __name__ == "__main__":
-    mhn_file_path = "/home/laukeller/BSc Thesis/TreeMHN/Example/MHN_Matrix.csv"
-    mhn_array = csv_to_numpy(mhn_file_path)
+    mhn_array = csv_to_numpy("MHN_Matrix.csv")
     print(mhn_array)
 
     rng = np.random.default_rng()
@@ -44,7 +43,7 @@ if __name__ == "__main__":
     min_tree_size = 2
     max_tree_size = 11
     for n_points in tree_counts:
-        trees_file_path = f"/home/laukeller/BSc Thesis/pMHN/warmup/trees_{n_points}.csv"
+        trees_file_path = f"trees_py_data/trees_{n_points}.csv"
 
         _, trees = _simulate.simulate_trees(
             rng,
