@@ -186,15 +186,19 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
     exit_node = None
 
     dict_nodes1_lineages = {
-        node: get_lineage(node) for nodes1 in iter1 for node in nodes1
+        (node, level): get_lineage(node)
+        for level, nodes1 in enumerate(iter1)
+        for node in nodes1
     }
     dict_nodes2_lineages = {
-        node: get_lineage(node) for nodes2 in iter2 for node in nodes2
+        (node, level): get_lineage(node)
+        for level, nodes2 in enumerate(iter2)
+        for node in nodes2
     }
 
-    for nodes1, nodes2 in zip(iter1, iter2):
-        set_nodes1_lineages = {dict_nodes1_lineages[node] for node in nodes1}
-        set_nodes2_lineages = {dict_nodes2_lineages[node] for node in nodes2}
+    for level, (nodes1, nodes2) in enumerate(zip(iter1, iter2)):
+        set_nodes1_lineages = {dict_nodes1_lineages[(node, level)] for node in nodes1}
+        set_nodes2_lineages = {dict_nodes2_lineages[(node, level)] for node in nodes2}
         additional_nodes_lineages = set_nodes2_lineages ^ set_nodes1_lineages
         diff_count += len(additional_nodes_lineages)
 
@@ -202,11 +206,11 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
             additional_node_lineage = additional_nodes_lineages.pop()
 
             for node in nodes1:
-                if dict_nodes1_lineages[node] == additional_node_lineage:
+                if dict_nodes1_lineages[(node, level)] == additional_node_lineage:
                     return None
 
             for node in nodes2:
-                if dict_nodes2_lineages[node] == additional_node_lineage:
+                if dict_nodes2_lineages[(node, level)] == additional_node_lineage:
                     exit_node = node
                     break
         if diff_count > 1:
