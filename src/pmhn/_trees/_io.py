@@ -33,6 +33,7 @@ class TreeNaming:
 
     node: str = "Node_ID"
     parent: str = "Parent_ID"
+    mutation: str = "Mutation_ID"
     data: dict[str, str] = dataclasses.field(
         default_factory=lambda: {"Mutation_ID": "mutation"}
     )
@@ -79,11 +80,11 @@ def parse_tree(df: pd.DataFrame, naming: TreeNaming) -> anytree.Node:
                     f"Root is {root}, but {node_id} == {parent_id} "
                     "also looks like a root."
                 )
-            root = anytree.Node(values["mutation"], parent=None, **values)
+            root = anytree.Node(row[naming.mutation], parent=None, **values)
             nodes[node_id] = root
         else:
             nodes[node_id] = anytree.Node(
-                values["mutation"], parent=nodes[parent_id], **values
+                row[naming.mutation], parent=nodes[parent_id], **values
             )
 
     if root is None:

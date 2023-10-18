@@ -12,15 +12,17 @@ def test_parse_tree() -> None:
     """
     tree_df = pd.DataFrame(
         {
-            "NodeID": [1, 2, 5, 10],
-            "ParentID": [1, 1, 1, 5],
-            "ValueSquare": [1, 4, 25, 100],
-            "ValueDoubled": [2, 4, 10, 20],
+            "Node_ID": [1, 2, 3, 4],
+            "Parent_ID": [1, 1, 1, 2],
+            "Mutation_ID": [0, 5, 2, 10],
+            "ValueSquare": [0, 25, 4, 100],
+            "ValueDoubled": [0, 10, 4, 20],
         }
     )
     naming = io.TreeNaming(
-        node="NodeID",
-        parent="ParentID",
+        node="Node_ID",
+        parent="Parent_ID",
+        mutation="Mutation_ID",
         data={
             "ValueSquare": "square",
             "ValueDoubled": "doubled",
@@ -34,7 +36,7 @@ def test_parse_tree() -> None:
         assert node.doubled == 2 * n
 
         if n == 2 or n == 5:
-            assert node.parent.name == 1
+            assert node.parent.name == 0
         elif n == 10:
             assert node.parent.name == 5
 
