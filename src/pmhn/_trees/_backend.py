@@ -2,11 +2,16 @@ from typing import Protocol
 
 
 import numpy as np
-from scipy.sparse.linalg import spsolve_triangular
-from scipy.sparse import csr_matrix
 from pmhn._trees._interfaces import Tree
 from pmhn._trees._tree_utils import create_all_subtrees, bfs_compare
-from anytree import Node
+from anytree import Node, LevelOrderGroupIter
+
+
+class LoglikelihoodSingleTree:
+    def __init__(self, tree: Node):
+        self._subtrees_dict = create_all_subtrees(tree)
+
+    _subtrees_dict: dict[Node, int]
 
 
 class IndividualTreeMHNBackendInterface(Protocol):
@@ -64,33 +69,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
 
     _jitter: float
 
-    def create_V_Mat(
-        self, tree: Node, theta: np.ndarray, sampling_rate: float
-    ) -> np.ndarray:
-        """Calculates the V matrix.
-
-        Args:
-            tree: a tree
-            theta: real-valued (i.e., log-theta) matrix,
-              shape (n_mutations, n_mutations)
-            sampling_rate: a scalar of type float
-        Returns:
-            the V matrix.
-        """
-
-        subtrees = create_all_subtrees(tree)
-        subtrees_size = len(subtrees)
-        Q = np.zeros((subtrees_size, subtrees_size))
-        for i in range(subtrees_size):
-            for j in range(subtrees_size):
-                if i == j:
-                    Q[i][j] = self.diag_entry(subtrees[i], theta)
-                else:
-                    Q[i][j] = self.off_diag_entry(subtrees[i], subtrees[j], theta)
-        V = np.eye(subtrees_size) * sampling_rate - Q
-        return V
-
-    def diag_entry(self, tree: Node, theta: np.ndarray) -> float:
+    def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
         """
         Calculates a diagonal entry of the V matrix.
 
@@ -98,41 +77,29 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             tree: a tree
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
-
+            all_mut: set containing all possible mutations
         Returns:
             the diagonal entry of the V matrix corresponding to tree
         """
         lamb_sum = 0
-        n_mutations = len(theta)
-        current_nodes = [tree]
-        while len(current_nodes) != 0:
-            next_nodes = []
-            for node in current_nodes:
-                tree_mutations = list(node.path) + list(node.children)
-                exit_mutations = list(
-                    set([i + 1 for i in range(n_mutations)]).difference(
-                        set(
-                            [
-                                tree_mutation.name  # type: ignore
-                                for tree_mutation in tree_mutations
-                            ]
-                        )
-                    )
+
+        for level in LevelOrderGroupIter(tree):
+            for node in level:
+                tree_mutations = {n.name for n in node.path}.union(
+                    {c.name for c in node.children}
                 )
+                exit_mutations = set(all_mut).difference(tree_mutations)
+
                 for mutation in exit_mutations:
                     lamb = 0
-                    exit_subclone = [
-                        anc.name  # type: ignore
-                        for anc in node.path
-                        if anc.parent is not None
-                    ] + [mutation]
+                    exit_subclone = {
+                        anc.name for anc in node.path if anc.parent is not None
+                    }.union({mutation})
                     for j in exit_subclone:
                         lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
                     lamb_sum -= lamb
-                for child in node.children:
-                    next_nodes.append(child)
-            current_nodes = next_nodes
+
         return lamb_sum
 
     def off_diag_entry(self, tree1: Node, tree2: Node, theta: np.ndarray) -> float:
@@ -144,7 +111,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             tree2: the second tree
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
-
         Returns:
             the off-diagonal entry of the V matrix corresponding to tree1 and tree2
         """
@@ -163,7 +129,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             return float(lamb)
 
     def loglikelihood(
-        self, tree: Node, theta: np.ndarray, sampling_rate: float
+        self, tree: LoglikelihoodSingleTree, theta: np.ndarray, sampling_rate: float
     ) -> float:
         """
         Calculates loglikelihood `log P(tree | theta)`.
@@ -178,15 +144,26 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         """
         # TODO(Pawel): this is part of https://github.com/cbg-ethz/pMHN/issues/15
         #   It can be implemented in any way.
-        V = self.create_V_Mat(tree=tree, theta=theta, sampling_rate=sampling_rate)
-        V_size = V.shape[0]
-        b = np.zeros(V_size)
-        b[0] = 1
-        V_transposed = V.transpose()
-        V_csr = csr_matrix(V_transposed)
-        x = spsolve_triangular(V_csr, b, lower=True)
+        subtrees_size = len(tree._subtrees_dict)
+        x = np.zeros(subtrees_size)
+        x[0] = 1
+        n_mutations = len(theta)
+        all_mut = set(i + 1 for i in range(n_mutations))
+        for i, (subtree_i, subtree_size_i) in enumerate(tree._subtrees_dict.items()):
+            V_col = {}
+            V_diag = 0.0
+            for j, (subtree_j, subtree_size_j) in enumerate(
+                tree._subtrees_dict.items()
+            ):
+                if subtree_size_i - subtree_size_j == 1:
+                    V_col[j] = -self.off_diag_entry(subtree_j, subtree_i, theta)
+                elif i == j:
+                    V_diag = sampling_rate - self.diag_entry(subtree_i, theta, all_mut)
+            for index, val in V_col.items():
+                x[i] -= val * x[index]
+            x[i] /= V_diag
 
-        return np.log(x[V_size - 1] + self._jitter) + np.log(sampling_rate)
+        return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
         """Calculates the partial derivatives of `log P(tree | theta)`

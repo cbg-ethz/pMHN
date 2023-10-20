@@ -3,15 +3,19 @@ from typing import Protocol
 
 import numpy as np
 from pmhn._trees._interfaces import Tree
-from pmhn._trees._tree_utils_new import create_all_subtrees, bfs_compare
+from pmhn._trees._tree_utils_geno import create_genotype_subtree_map
 from anytree import Node
 
 
 class LoglikelihoodSingleTree:
     def __init__(self, tree: Node):
-        self._subtrees_dict = create_all_subtrees(tree)
+        (
+            self._genotype_subtree_node_map,
+            self._index_subclone_map,
+        ) = create_genotype_subtree_map(tree)
 
-    _subtrees_dict: dict[Node, int]
+    _genotype_subtree_node_map: dict[tuple[tuple[Node, int]], tuple[int, int]]
+    _index_subclone_map: dict[int, tuple[int]]
 
 
 class IndividualTreeMHNBackendInterface(Protocol):
@@ -69,74 +73,68 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
 
     _jitter: float
 
-    def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
-        """
-        Calculates a diagonal entry of the V matrix.
-
-        Args:
-            tree: a tree
-            theta: real-valued (i.e., log-theta) matrix,
-              shape (n_mutations, n_mutations)
-            all_mut: set containing all possible mutations
-        Returns:
-            the diagonal entry of the V matrix corresponding to tree
-        """
+    def diag_entry(
+        self,
+        tree: LoglikelihoodSingleTree,
+        genotype: tuple[tuple[Node, int]],
+        theta: np.ndarray,
+        all_mut: set[int],
+    ) -> float:
         lamb_sum = 0
-        current_nodes = [tree]
-        while len(current_nodes) != 0:
-            next_nodes = []
-            for node in current_nodes:
-                tree_mutations = set(node.path).union(node.children)
-                exit_mutations = all_mut.difference(
-                    set(
-                        tree_mutation.name  # type: ignore
-                        for tree_mutation in tree_mutations
-                    )
-                )
+        for i, (node, val) in enumerate(genotype):
+            if val:
+                lineage = tree._index_subclone_map[i]
+                lineage = list(lineage)
+                tree_mutations = set(lineage + [c.name for c in node.children])
+
+                exit_mutations = all_mut.difference(tree_mutations)
+
                 for mutation in exit_mutations:
                     lamb = 0
-                    exit_subclone = [
-                        anc.name  # type: ignore
-                        for anc in node.path
-                        if anc.parent is not None
-                    ] + [mutation]
+                    exit_subclone = lineage + [mutation]
                     for j in exit_subclone:
-                        lamb += theta[mutation - 1][j - 1]
+                        if j != 0:
+                            lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
                     lamb_sum -= lamb
-                for child in node.children:
-                    next_nodes.append(child)
-            current_nodes = next_nodes
         return lamb_sum
 
-    def off_diag_entry(self, tree1: Node, tree2: Node, theta: np.ndarray) -> float:
-        """
-        Calculates an off-diagonal entry of the V matrix.
+    def find_single_difference(self, arr1: np.ndarray, arr2: np.ndarray):
+        differing_indices = np.nonzero(np.bitwise_xor(arr1, arr2))[0]
 
-        Args:
-            tree1: the first tree
-            tree2: the second tree
-            theta: real-valued (i.e., log-theta) matrix,
-              shape (n_mutations, n_mutations)
-        Returns:
-            the off-diagonal entry of the V matrix corresponding to tree1 and tree2
-        """
-        exit_node = bfs_compare(tree1, tree2)
-        lamb = 0
-        if exit_node is None:
-            return lamb
+        return (
+            (True, differing_indices[0])
+            if len(differing_indices) == 1
+            else (False, None)
+        )
+
+    def off_diag_entry(
+        self,
+        tree: LoglikelihoodSingleTree,
+        genotype_i: np.ndarray,
+        genotype_j: np.ndarray,
+        theta: np.ndarray,
+    ):
+        is_single_diff, index = self.find_single_difference(genotype_i, genotype_j)
+        if index is None:
+            return 0
         else:
-            for j in [
-                node.name  # type: ignore
-                for node in exit_node.path
-                if node.parent is not None
-            ]:
-                lamb += theta[exit_node.name - 1][j - 1]
+            lamb = 0
+            lineage = tree._index_subclone_map[index]
+            exit_mutation = lineage[-1]
+            for mutation in lineage:
+                if mutation != 0:
+                    lamb += theta[exit_mutation - 1][mutation - 1]
             lamb = np.exp(lamb)
             return float(lamb)
 
     def loglikelihood(
-        self, tree: LoglikelihoodSingleTree, theta: np.ndarray, sampling_rate: float
+        self,
+        tree: LoglikelihoodSingleTree,
+        theta: np.ndarray,
+        sampling_rate: float,
+        n_mutations: int,
+        all_mut: set[int],
     ) -> float:
         """
         Calculates loglikelihood `log P(tree | theta)`.
@@ -151,25 +149,32 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         """
         # TODO(Pawel): this is part of https://github.com/cbg-ethz/pMHN/issues/15
         #   It can be implemented in any way.
-        subtrees_size = len(tree._subtrees_dict)
+        subtrees_size = len(tree._genotype_subtree_node_map)
         x = np.zeros(subtrees_size)
         x[0] = 1
-        n_mutations = len(theta)
-        all_mut = set(i + 1 for i in range(n_mutations))
-        for i, (subtree_i, subtree_size_i) in enumerate(tree._subtrees_dict.items()):
-            V_col = {}
+        genotype_lists = []
+        for genotype in tree._genotype_subtree_node_map.keys():
+            genotype_lists.append(np.array([item[1] for item in genotype]))
+        for genotype_i, (i, subtree_size_i) in tree._genotype_subtree_node_map.items():
+            V_col = []
             V_diag = 0.0
-            for j, (subtree_j, subtree_size_j) in enumerate(
-                tree._subtrees_dict.items()
-            ):
+            for j, subtree_size_j in tree._genotype_subtree_node_map.values():
                 if subtree_size_i - subtree_size_j == 1:
-                    V_col[j] = -self.off_diag_entry(subtree_j, subtree_i, theta)
+                    V_col.append(
+                        (
+                            j,
+                            -self.off_diag_entry(
+                                tree, genotype_lists[j], genotype_lists[i], theta
+                            ),
+                        )
+                    )
                 elif i == j:
-                    V_diag = sampling_rate - self.diag_entry(subtree_i, theta, all_mut)
-            for index, val in V_col.items():
+                    V_diag = sampling_rate - self.diag_entry(
+                        tree, genotype_i, theta, all_mut
+                    )
+            for index, val in V_col:
                 x[i] -= val * x[index]
             x[i] /= V_diag
-
         return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
