@@ -1,9 +1,9 @@
-from typing import Protocol
+from typing import Protocol, Optional
 
 
 import numpy as np
 from pmhn._trees._interfaces import Tree
-from pmhn._trees._tree_utils_geno import create_genotype_subtree_map
+from pmhn._trees._tree_utils_geno import create_mappings
 from anytree import Node
 
 
@@ -12,7 +12,7 @@ class LoglikelihoodSingleTree:
         (
             self._genotype_subtree_node_map,
             self._index_subclone_map,
-        ) = create_genotype_subtree_map(tree)
+        ) = create_mappings(tree)
 
     _genotype_subtree_node_map: dict[tuple[tuple[Node, int]], tuple[int, int]]
     _index_subclone_map: dict[int, tuple[int]]
@@ -80,6 +80,18 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         theta: np.ndarray,
         all_mut: set[int],
     ) -> float:
+        """
+        Calculates a diagonal entry of the V matrix.
+
+        Args:
+            tree: a tree
+            genotype: the genotype of a subtree
+            theta: real-valued (i.e., log-theta) matrix,
+              shape (n_mutations, n_mutations)
+            all_mut: a set containing all possible mutations
+        Returns:
+            the diagonal entry of the V matrix corresponding to tree
+        """
         lamb_sum = 0
         for i, (node, val) in enumerate(genotype):
             if val:
@@ -99,14 +111,23 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                     lamb_sum -= lamb
         return lamb_sum
 
-    def find_single_difference(self, arr1: np.ndarray, arr2: np.ndarray):
+    def find_single_difference(
+        self, arr1: np.ndarray, arr2: np.ndarray
+    ) -> Optional[int]:
+        """
+        Checks if two binary arrays of equal size differ in only one entry.
+        If so, the index of the differing entry is returned, otherwise None.
+
+        Args:
+            arr1: the first array
+            arr2: the second array
+        Returns:
+            the index of the differing entry if there's
+            a single difference, otherwise None.
+        """
         differing_indices = np.nonzero(np.bitwise_xor(arr1, arr2))[0]
 
-        return (
-            (True, differing_indices[0])
-            if len(differing_indices) == 1
-            else (False, None)
-        )
+        return differing_indices[0] if len(differing_indices) == 1 else None
 
     def off_diag_entry(
         self,
@@ -114,8 +135,20 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         genotype_i: np.ndarray,
         genotype_j: np.ndarray,
         theta: np.ndarray,
-    ):
-        is_single_diff, index = self.find_single_difference(genotype_i, genotype_j)
+    ) -> float:
+        """
+        Calculates an off-diagonal entry of the V matrix.
+
+        Args:
+            tree: the original tree
+            genotype_i: the genotype of a subtree
+            genotype_j: the genotype of another subtree
+            theta: real-valued (i.e., log-theta) matrix,
+              shape (n_mutations, n_mutations)
+        Returns:
+            the off-diagonal entry of the V matrix corresponding to tree1 and tree2
+        """
+        index = self.find_single_difference(genotype_i, genotype_j)
         if index is None:
             return 0
         else:
@@ -133,7 +166,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         tree: LoglikelihoodSingleTree,
         theta: np.ndarray,
         sampling_rate: float,
-        n_mutations: int,
         all_mut: set[int],
     ) -> float:
         """
@@ -144,8 +176,9 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
             sampling_rate: a scalar of type float
+            all_mut: a set containing all possible mutations
         Returns:
-            loglikelihood of the tree
+            the loglikelihood of tree
         """
         # TODO(Pawel): this is part of https://github.com/cbg-ethz/pMHN/issues/15
         #   It can be implemented in any way.

@@ -55,18 +55,24 @@ def all_combinations_of_elements(*lists):
                 yield list(element_combination)
 
 
-def create_subtree(
-    original_root: Node, nodes_list: list[Node], all_nodes_root: list[Node]
-) -> Node:
+def create_subtree(subtree_nodes: list[Node], original_tree_nodes: list[Node]) -> Node:
+    """
+    Creates a certain subtree of the original tree.
+
+    Args:
+        subtree_nodes: the nodes that are contained in both
+        the subtree and the original tree
+        original_tree_nodes: all nodes of the original tree
+    Returns:
+           a subtree
+    """
     nodes_dict = {}
-    node_to_parent = {node: node.parent for node in nodes_list}
 
-    for node in all_nodes_root:
-        if node in nodes_list:
-            parent_node = node_to_parent.get(node)
-            nodes_dict[node] = Node(node.name, parent=nodes_dict.get(parent_node))
+    for node in subtree_nodes:
+        parent_node = node.parent
+        nodes_dict[node] = Node(node.name, parent=nodes_dict.get(parent_node))
 
-    return nodes_dict[original_root]
+    return nodes_dict[original_tree_nodes[0]]
 
 
 def get_subtrees(node: Node, memo: Optional[dict] = None) -> list[list[Node]]:
@@ -77,7 +83,7 @@ def get_subtrees(node: Node, memo: Optional[dict] = None) -> list[list[Node]]:
     Args:
         node: the root node
     Returns:
-           a list of subtrees where each subtree is a list of nodes
+        a list of subtrees where each subtree is a list of nodes
     """
     if memo is None:
         memo = {}
@@ -110,18 +116,27 @@ def get_lineage(node: Node) -> tuple[int]:
     Args:
         node: a node
     Returns:
-            the lineage of a node
+        the lineage of a node
     """
     return tuple(ancestor.name for ancestor in node.path)  # type: ignore
 
 
 def create_index_subclone_maps(
-    tree: Node,
+    root: Node,
 ) -> tuple[dict[int, tuple[int]], dict[tuple[int], int]]:
+    """
+    Assigns a unique index to each subclone in the provided
+    tree and generates two dictionaries: one mapping each unique
+    index to its corresponding subclone, and the other inverting this relationship.
+    Args:
+        root: the root node of a tree
+    Returns:
+        two dictionaries that contain the mappings
+    """
     index_subclone_map = {}
     subclone_index_map = {}
     index = 0
-    for level in LevelOrderGroupIter(tree):
+    for level in LevelOrderGroupIter(root):
         for node in level:
             index_subclone_map[index] = get_lineage(node)
             subclone_index_map[get_lineage(node)] = index
@@ -130,36 +145,50 @@ def create_index_subclone_maps(
 
 
 def create_genotype(
-    size: int, subtree: Node, subclone_index_map: dict[tuple[int], int]
+    size: int, root: Node, subclone_index_map: dict[tuple[int], int]
 ) -> tuple[tuple[Optional[Node], int], ...]:
+    """
+    Creates the genotype of a given tree.
+
+    Args:
+        size: the size of the original tree
+        root: the root node of a subtree of the original tree
+        subclone_index_map: a dictionary that maps subclones to their indices
+    Returns:
+        a tuple of tuples, where each inner tuple represents a subclone from
+        the original tree. For each subclone, if it exists in the subtree,
+        the inner tuple contains the last node of that subclone and the value 1;
+        if it doesn't exist, the tuple contains None and the value 0.
+    """
     x = [(Node(None), int(0))] * size
-    for level in LevelOrderGroupIter(subtree):
+    for level in LevelOrderGroupIter(root):
         for node in level:
             lineage = get_lineage(node)
             x[subclone_index_map[lineage]] = (node, 1)
     return tuple(x)
 
 
-def create_genotype_subtree_map(
+def create_mappings(
     root: Node,
 ) -> tuple[dict[tuple[tuple[Node, int]], tuple[int, int]], dict[int, tuple[int]]]:
+    """
+    Creates the required mappings to calculate the likelihood of a tree.
+
+    Args:
+        root: the root node of the original tree
+    Returns:
+        two dictionaries, one mapping genotypes to subtrees (here only the
+        index and length of the subtrees are needed) and the other one
+        mapping indices to subclones
+    """
     index_subclone_map, subclone_index_map = create_index_subclone_maps(root)
-    subtree_genotype_node_map = {}
-    all_node_lists = get_subtrees(root)
-    all_nodes_root = all_node_lists[-1]
-    all_node_lists_with_len = [
-        (node_list, len(node_list)) for node_list in all_node_lists
-    ]
-    size = len(all_node_lists)
-    for index, (node_list, node_list_len) in enumerate(all_node_lists_with_len):
-        subtree = create_subtree(root, node_list, all_nodes_root)
-        genotype_node = create_genotype(size, subtree, subclone_index_map)
-        subtree_genotype_node_map[genotype_node] = (index, node_list_len)
-    return subtree_genotype_node_map, index_subclone_map
-
-
-if __name__ == "__main__":
-    A = Node("0")
-    B = Node("1", parent=A)
-    C = Node("3", parent=A)
-    D = Node("4", parent=B)
+    genotype_subtree_map = {}
+    subtrees = get_subtrees(root)
+    original_tree = subtrees[-1]
+    all_node_lists_with_len = [(subtree, len(subtree)) for subtree in subtrees]
+    size = len(subtrees)
+    for index, (subtree, subtree_size) in enumerate(all_node_lists_with_len):
+        subtree = create_subtree(subtree, original_tree)
+        genotype = create_genotype(size, subtree, subclone_index_map)
+        genotype_subtree_map[genotype] = (index, subtree_size)
+    return genotype_subtree_map, index_subclone_map

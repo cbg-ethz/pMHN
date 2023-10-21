@@ -57,9 +57,7 @@ all_mut_AML = set(i + 1 for i in range(theta_AML_size))
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
     tree_log = LoglikelihoodSingleTree(tree)
-    log_value = backend.loglikelihood(
-        tree_log, theta_AML, sampling_rate, theta_AML_size, all_mut_AML
-    )
+    log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate, all_mut_AML)
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
 theta_500_size = len(theta_500)
@@ -67,9 +65,7 @@ all_mut_500 = set(i + 1 for i in range(theta_500_size))
 for idx, tree in trees_500.items():
     print(f"Processing tree {idx} of {len(trees_500)}")
     tree_log = LoglikelihoodSingleTree(tree)
-    log_value = backend.loglikelihood(
-        tree_log, theta_500, sampling_rate, theta_500_size, all_mut_500
-    )
+    log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate, all_mut_500)
     log_vec_py_500[idx - 1] = log_value
     print(f"log_value: {log_value}")
 
