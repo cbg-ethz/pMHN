@@ -90,7 +90,8 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
               shape (n_mutations, n_mutations)
             all_mut: a set containing all possible mutations
         Returns:
-            the diagonal entry of the V matrix corresponding to tree
+            the diagonal entry of the V matrix corresponding to
+            genotype
         """
         lamb_sum = 0
         for i, (node, val) in enumerate(genotype):
@@ -146,7 +147,8 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
         Returns:
-            the off-diagonal entry of the V matrix corresponding to tree1 and tree2
+            an off-diagonal entry of the V matrix corresponding to
+            the genotype_i and genotype_j
         """
         index = self.find_single_difference(genotype_i, genotype_j)
         if index is None:
