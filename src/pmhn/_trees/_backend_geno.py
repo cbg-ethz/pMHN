@@ -1,6 +1,5 @@
 from typing import Protocol, Optional
 
-
 import numpy as np
 from pmhn._trees._interfaces import Tree
 from pmhn._trees._tree_utils_geno import create_mappings
@@ -104,7 +103,8 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
 
                 for mutation in exit_mutations:
                     lamb = 0
-                    exit_subclone = lineage + [mutation]
+                    exit_subclone = lineage
+                    lamb += theta[mutation - 1][mutation - 1]
                     for j in exit_subclone:
                         if j != 0:
                             lamb += theta[mutation - 1][j - 1]
