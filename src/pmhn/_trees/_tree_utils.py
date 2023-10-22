@@ -74,39 +74,30 @@ def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
     return nodes_dict[original_root]
 
 
-def get_subtrees(node: Node, memo: Optional[dict] = None) -> list[list[Node]]:
+def get_subtrees(node: Node) -> list[list[Node]]:
     """
     Creates a list of all subtrees of a tree.
-
+    A recursive approach is employed: If one knows the subtrees of the
+    children of the root node, then one can find all combinations of
+    the subtrees of the children and add the root node to each one
+    of these combinations, this way one obtains all subtrees of the original tree.
 
     Args:
         node: the root node
     Returns:
-           a list of subtrees where each subtree is a list of nodes
+        a list of subtrees
     """
-    if memo is None:
-        memo = {}
-
-    if node in memo:
-        return memo[node]
-
     if not node.children:
-        memo[node] = [[node]]
         return [[node]]
 
-    child_subtrees = [get_subtrees(child, memo) for child in node.children]
+    child_subtrees = [get_subtrees(child) for child in node.children]
 
     combined_subtrees = all_combinations_of_elements(*child_subtrees)
 
-    result_subtrees = []
-    result_subtrees.append([node])
-    for combination in combined_subtrees:
-        subtree_with_root = [node] + [
-            item for sublist in combination for item in sublist
-        ]
-        result_subtrees.append(subtree_with_root)
-
-    memo[node] = result_subtrees
+    result_subtrees = [[node]] + [
+        [node] + [item for sublist in combination for item in sublist]
+        for combination in combined_subtrees
+    ]
 
     return result_subtrees
 
