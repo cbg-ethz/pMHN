@@ -53,7 +53,7 @@ log_vec_py_500 = np.empty(len(trees_500))
 start_time = time.time()
 backend = OriginalTreeMHNBackend()
 theta_AML_size = len(theta_AML)
-all_mut_AML = set(i + 1 for i in range(theta_AML_size))
+all_mut_AML = set(range(1, theta_AML_size + 1))
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
     tree_log = LoglikelihoodSingleTree(tree)
@@ -61,7 +61,7 @@ for idx, tree in trees_AML.items():
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
 theta_500_size = len(theta_500)
-all_mut_500 = set(i + 1 for i in range(theta_500_size))
+all_mut_500 = set(range(1, theta_500_size + 1))
 for idx, tree in trees_500.items():
     print(f"Processing tree {idx} of {len(trees_500)}")
     tree_log = LoglikelihoodSingleTree(tree)
