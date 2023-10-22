@@ -103,9 +103,8 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
 
                 for mutation in exit_mutations:
                     lamb = 0
-                    exit_subclone = lineage
                     lamb += theta[mutation - 1][mutation - 1]
-                    for j in exit_subclone:
+                    for j in lineage:
                         if j != 0:
                             lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
