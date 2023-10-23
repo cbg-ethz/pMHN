@@ -9,9 +9,7 @@ from anytree import Node, LevelOrderGroupIter
 
 class LoglikelihoodSingleTree:
     def __init__(self, tree: Node):
-        self._subtrees_dict = create_all_subtrees(tree)
-
-    _subtrees_dict: dict[Node, int]
+        self._subtrees_dict: dict[Node, int] = create_all_subtrees(tree)
 
 
 class IndividualTreeMHNBackendInterface(Protocol):
@@ -65,9 +63,7 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
     def __init__(self, jitter: float = 1e-10):
-        self._jitter = jitter
-
-    _jitter: float
+        self._jitter: float = jitter
 
     def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
         """

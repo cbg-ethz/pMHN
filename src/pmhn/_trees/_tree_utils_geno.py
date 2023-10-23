@@ -117,7 +117,7 @@ def get_lineage(node: Node) -> tuple[int]:
 
 def create_index_subclone_maps(
     root: Node,
-) -> tuple[dict[int, tuple[int]], dict[tuple[int], int]]:
+) -> tuple[dict[int, tuple[int, ...]], dict[tuple[int, ...], int]]:
     """
     Assigns a unique index to each subclone in the provided
     tree and generates two dictionaries: one mapping each unique
@@ -139,7 +139,7 @@ def create_index_subclone_maps(
 
 
 def create_genotype(
-    size: int, root: Node, subclone_index_map: dict[tuple[int], int]
+    size: int, root: Node, subclone_index_map: dict[tuple[int, ...], int]
 ) -> tuple[tuple[Optional[Node], int], ...]:
     """
     Creates the genotype of a given tree.
@@ -164,7 +164,9 @@ def create_genotype(
 
 def create_mappings(
     root: Node,
-) -> tuple[dict[tuple[tuple[Node, int]], tuple[int, int]], dict[int, tuple[int]]]:
+) -> tuple[
+    dict[tuple[tuple[Node, int], ...], tuple[int, int]], dict[int, tuple[int, ...]]
+]:
     """
     Creates the required mappings to calculate the likelihood of a tree.
 

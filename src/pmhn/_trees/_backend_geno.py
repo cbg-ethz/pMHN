@@ -8,13 +8,15 @@ from anytree import Node
 
 class LoglikelihoodSingleTree:
     def __init__(self, tree: Node):
+        self._genotype_subtree_node_map: dict[
+            tuple[tuple[Node, int], ...], tuple[int, int]
+        ]
+        self._index_subclone_map: dict[int, tuple[int, ...]]
+
         (
             self._genotype_subtree_node_map,
             self._index_subclone_map,
         ) = create_mappings(tree)
-
-    _genotype_subtree_node_map: dict[tuple[tuple[Node, int]], tuple[int, int]]
-    _index_subclone_map: dict[int, tuple[int]]
 
 
 class IndividualTreeMHNBackendInterface(Protocol):
@@ -68,14 +70,12 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
     def __init__(self, jitter: float = 1e-10):
-        self._jitter = jitter
-
-    _jitter: float
+        self._jitter: float = jitter
 
     def diag_entry(
         self,
         tree: LoglikelihoodSingleTree,
-        genotype: tuple[tuple[Node, int]],
+        genotype: tuple[tuple[Node, int], ...],
         theta: np.ndarray,
         all_mut: set[int],
     ) -> float:
