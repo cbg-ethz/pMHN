@@ -2,6 +2,7 @@ from typing import Protocol
 
 
 import numpy as np
+
 from pmhn._trees._interfaces import Tree
 from pmhn._trees._tree_utils import create_all_subtrees, bfs_compare
 from anytree import Node, LevelOrderGroupIter
@@ -10,6 +11,7 @@ from anytree import Node, LevelOrderGroupIter
 class LoglikelihoodSingleTree:
     def __init__(self, tree: Node):
         self._subtrees_dict: dict[Node, int] = create_all_subtrees(tree)
+
 
 
 class IndividualTreeMHNBackendInterface(Protocol):
@@ -63,9 +65,11 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
     def __init__(self, jitter: float = 1e-10):
+
         self._jitter: float = jitter
 
     def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
+
         """
         Calculates a diagonal entry of the V matrix.
 
@@ -73,11 +77,14 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             tree: a tree
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
+
             all_mut: set containing all possible mutations
+
         Returns:
             the diagonal entry of the V matrix corresponding to tree
         """
         lamb_sum = 0
+
 
         for level in LevelOrderGroupIter(tree):
             for node in level:
@@ -91,10 +98,13 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                     exit_subclone = {
                         anc.name for anc in node.path if anc.parent is not None
                     }.union({mutation})
+
                     for j in exit_subclone:
                         lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
                     lamb_sum -= lamb
+
+
 
         return lamb_sum
 
@@ -107,6 +117,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             tree2: the second tree
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
+
         Returns:
             the off-diagonal entry of the V matrix corresponding to tree1 and tree2
         """
@@ -125,7 +136,9 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             return float(lamb)
 
     def loglikelihood(
+
         self, tree: LoglikelihoodSingleTree, theta: np.ndarray, sampling_rate: float
+
     ) -> float:
         """
         Calculates loglikelihood `log P(tree | theta)`.
@@ -140,6 +153,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
         """
         # TODO(Pawel): this is part of https://github.com/cbg-ethz/pMHN/issues/15
         #   It can be implemented in any way.
+
         subtrees_size = len(tree._subtrees_dict)
         x = np.zeros(subtrees_size)
         x[0] = 1
@@ -160,6 +174,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             x[i] /= V_diag
 
         return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
+
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
         """Calculates the partial derivatives of `log P(tree | theta)`

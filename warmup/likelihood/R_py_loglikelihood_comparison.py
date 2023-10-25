@@ -6,6 +6,7 @@ import numpy as np
 import time
 
 
+
 def csv_to_numpy(file_path):
     with open(file_path, "r") as file:
         reader = csv.reader(file)
@@ -55,6 +56,7 @@ for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
     tree_log = LoglikelihoodSingleTree(tree)
     log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate)
+
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
 
@@ -67,6 +69,7 @@ for idx, tree in trees_500.items():
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Time elapsed: {elapsed_time} seconds")
+
 # write Python loglikelihoods to CSV
 np.savetxt("likelihood_py/log_vec_py_AML.csv", log_vec_py_AML, delimiter=",")
 np.savetxt("likelihood_py/log_vec_py_500.csv", log_vec_py_500, delimiter=",")
