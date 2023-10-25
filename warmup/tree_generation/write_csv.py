@@ -23,10 +23,12 @@ def write_trees_to_csv(trees, output_file_path):
             patient_id += 1
             tree_id = patient_id
             node_id = 0
+            node_id_dict = {}
             for node, _ in tree_dict.items():
                 node_id += 1
+                node_id_dict[node] = node_id
                 mutation_id = node.name
-                parent_id = node.parent.name if node.parent else node_id
+                parent_id = node_id_dict[node.parent] if node.parent else node_id
                 writer.writerow([patient_id, tree_id, node_id, mutation_id, parent_id])
 
 

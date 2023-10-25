@@ -210,6 +210,18 @@ rule mcmc_sample_one_chain:
         
         idata.to_netcdf(output.chain)
 
+# for comparison with ground truth
+rule plot_posterior_thetas_from_smc:
+    input:
+        smc_samples=expand("{scenario}/smc-samples.nc", scenario=SCENARIOS.keys())
+    output:
+        posterior_theta_plots=expand("{scenario}/posterior_theta_from_smc.pdf", scenario=SCENARIOS.keys())
+    run:
+        idata = az.from_netcdf(str(input))
+        posterior_samples = idata.posterior["theta"][0].values
+
+        fig, _ = pmhn.plot_theta_samples(posterior_samples, width=6, height=4)
+        fig.savefig(str(output))
 
 def assemble_chains(chain_files, output_file) -> None:
     chains = [az.from_netcdf(chain_file) for chain_file in chain_files]
