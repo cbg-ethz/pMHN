@@ -2,6 +2,7 @@ from typing import Protocol
 
 
 import numpy as np
+
 from pmhn._trees._interfaces import Tree
 from pmhn._trees._tree_utils import create_all_subtrees, bfs_compare
 from anytree import Node, LevelOrderGroupIter
@@ -73,7 +74,9 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             tree: a tree
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
+
             all_mut: set containing all possible mutations
+
         Returns:
             the diagonal entry of the V matrix corresponding to tree
         """
@@ -91,6 +94,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                     exit_subclone = {
                         anc.name for anc in node.path if anc.parent is not None
                     }.union({mutation})
+
                     for j in exit_subclone:
                         lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
@@ -107,6 +111,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             tree2: the second tree
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
+
         Returns:
             the off-diagonal entry of the V matrix corresponding to tree1 and tree2
         """

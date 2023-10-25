@@ -55,6 +55,7 @@ for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
     tree_log = LoglikelihoodSingleTree(tree)
     log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate)
+
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
 

@@ -163,6 +163,7 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
     Checks if tree1 is a subtree of tree2 with the assumption
     that tree2 is larger than the first tree by one.
 
+
     Args:
         tree1: the first tree
         tree2: the second tree
@@ -181,6 +182,7 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
         dict_nodes2_lineages = {node: get_lineage(node) for node in nodes2}
         set_nodes1_lineages = set(dict_nodes1_lineages.values())
         set_nodes2_lineages = set(dict_nodes2_lineages.values())
+
         additional_nodes_lineages = set_nodes2_lineages ^ set_nodes1_lineages
         diff_count += len(additional_nodes_lineages)
 
