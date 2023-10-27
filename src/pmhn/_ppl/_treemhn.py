@@ -2,7 +2,6 @@ from pmhn._trees._backend_geno import OriginalTreeMHNBackend, LoglikelihoodSingl
 
 import numpy as np
 import pytensor.tensor as pt
-from anytree import Node
 
 Op = pt.Op  # type: ignore
 
@@ -20,18 +19,13 @@ class TreeMHNLoglikelihood(Op):
 
     def __init__(
         self,
-        data: list[dict[Node, float]],
+        data: list[LoglikelihoodSingleTree],
         mean_sampling_time: float,
         all_mut: set[int],
         backend: OriginalTreeMHNBackend,
     ) -> None:
-        trees = []
-
-        for tree in data:
-            for key, val in tree.items():
-                trees.append(LoglikelihoodSingleTree(key))
-                break
-        self._data = trees
+        print("constructor called!")
+        self._data = data
         self._mean_sampling_time = mean_sampling_time
         self._all_mut = all_mut
         self._backend = backend
@@ -46,11 +40,9 @@ class TreeMHNLoglikelihood(Op):
         """
         (theta,) = inputs  # Unwrap the inputs
 
-        theta_np = np.array(theta)
-
         loglikelihoods = self._backend.loglikelihood_tree_list(
             trees=self._data,
-            theta=theta_np,
+            theta=theta,
             sampling_rate=self._mean_sampling_time,
             all_mut=self._all_mut,
         )

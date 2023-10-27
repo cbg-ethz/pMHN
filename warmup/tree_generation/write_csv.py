@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import pmhn._trees._simulate as _simulate
+from anytree import RenderTree
 
 
 def csv_to_numpy(file_path):
@@ -36,11 +37,11 @@ if __name__ == "__main__":
     mhn_array = csv_to_numpy("MHN_Matrix.csv")
     print(mhn_array)
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(111)
     theta = mhn_array
-    mean_sampling_time = 1.0
+    mean_sampling_time = 0.8
 
-    tree_counts = [500, 5000, 10000, 50000]
+    tree_counts = [200]
 
     min_tree_size = 2
     max_tree_size = 11
@@ -52,7 +53,12 @@ if __name__ == "__main__":
             n_points,
             theta,
             mean_sampling_time,
-            min_tree_size=min_tree_size,
-            max_tree_size=max_tree_size,
+            min_tree_size=None,
+            max_tree_size=None,
         )
+        for i, tree in enumerate(trees):
+            print(f"tree {i}")
+            for key, val in tree.items():
+                print(RenderTree(key))
+                break
         write_trees_to_csv(trees, trees_file_path)
