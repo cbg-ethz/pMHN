@@ -238,7 +238,7 @@ rule mcmc_sample_one_chain:
         model = prepare_full_model(trees, settings.mean_sampling_time, n_mutations, all_mut)
         print("reached !!!!!!") 
         with model:
-            idata = pm.sample(chains=4, random_seed=chain, tune=settings.tuning_samples, draws=settings.mcmc_samples
+            idata = pm.sample(chains=1, random_seed=chain, tune=settings.tuning_samples, draws=settings.mcmc_samples
             )        
         idata.to_netcdf(output.chain) 
 
