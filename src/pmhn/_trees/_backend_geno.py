@@ -255,8 +255,9 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             a list of loglikelihoods, one for each tree
         """
         loglikelihoods = []
-        for tree in trees:
+        for i, tree in enumerate(trees):
             loglikelihoods.append(
                 self.loglikelihood(tree, theta, sampling_rate, all_mut)
             )
+
         return loglikelihoods

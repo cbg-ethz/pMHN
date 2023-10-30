@@ -18,7 +18,7 @@ matplotlib.use("agg")
 # --- Working directory ---
 workdir: "generated/treemhn-bayes"
 
-N_CHAINS: int = 4
+N_CHAINS: int = 8
 
 
 @dataclasses.dataclass
@@ -29,15 +29,15 @@ class Settings:
     mean_sampling_time: float = 450.0 
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 10000
-    mcmc_samples: int = 10000
+    tuning_samples: int = 1000
+    mcmc_samples: int = 1000
 
     smc_particles: int = 1000
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "large_treemhn_random_theta_mcmc_horse_shoe_450.0": Settings(n_mutations=10, n_patients=2000, p_offdiag=3/8**2),
+    "large_treemhn_random_theta_mcmc_horse_shoe_450.0_tryout_100": Settings(n_mutations=10, n_patients=20, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -133,12 +133,26 @@ rule generate_data:
             mean_sampling_time=settings.mean_sampling_time, min_tree_size = None,max_tree_size = None
         )
         trees = []
+        trees_anytree = []
         print(len(trees_dict))
         for i, tree in enumerate(trees_dict):
             print(f"reached tree {i}")
             for key, val in tree.items():
                 tree_log =LoglikelihoodSingleTree(key) 
+                trees.append(tree_log)
+                trees_anytree.append(key)
                 break 
+
+        for i in range(len(trees_anytree)):
+            descendants = set(trees_anytree[i].descendants)
+            nodes = {trees_anytree[i]}
+            if trees_dict[i].keys() == descendants.union(nodes):
+                print("valid!!!")
+            else:
+                print(trees_dict[i].keys())
+                print(descendants.union(nodes))
+                print("invalid!!!")
+ 
         np.savez(output.arrays, trees_dict = trees_dict, trees=trees, theta=theta, sampling_times=sampling_times)
 
 def prepare_full_model(trees, mean_sampling_time, n_mutations, all_mut) -> pm.Model:
@@ -222,16 +236,9 @@ rule mcmc_sample_one_chain:
         settings = SCENARIOS[wildcards.scenario]
         print("reached !!!")
         with np.load(input.arrays, allow_pickle=True) as data:
-            tree_dict = data["trees"]
+            trees = data["trees"]
             theta = data["theta"]
-        trees = []
-        print(len(tree_dict))
-        for i, tree in enumerate(tree_dict):
-            print(f"reached tree {i}")
-            for key, val in tree.items():
-                print(RenderTree(key))
-                tree_log =LoglikelihoodSingleTree(key) 
-                break
+        print(len(trees))
         n_mutations = len(theta) 
         all_mut = set(i + 1 for i in range(n_mutations))
         print("reached end")
