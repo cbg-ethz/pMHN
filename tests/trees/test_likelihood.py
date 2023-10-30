@@ -1,9 +1,49 @@
-from pmhn._trees._backend import OriginalTreeMHNBackend, TreeWrapper
-from anytree import Node
 import numpy as np
+import pytest
+from anytree import Node
+
+import pmhn._trees._backend as backend_orig
+import pmhn._trees._backend_code as backend_geno
 
 
-def test_likelihood_small_tree():
+def get_loglikelihood_functions() -> list:
+    """This is an auxiliary function which returns a list of
+    loglikelihood functions to be tested.
+
+    Each of these functions has signature:
+
+        loglikelihood(
+            tree: Node,
+            theta: np.ndarray,
+            sampling_rate: float,
+            all_mut: set[int],
+        ) -> float
+
+    Note:
+        Whenever a new backend is used
+        (and it has a wrapper around trees for memoization),
+        it could just be added here.
+    """
+
+    def backend1(
+        tree: Node, theta: np.ndarray, sampling_rate: float, all_mut: set[int]
+    ) -> float:
+        return backend_orig.OriginalTreeMHNBackend().loglikelihood(
+            backend_orig.TreeWrapper(tree), theta, sampling_rate
+        )
+
+    def backend2(
+        tree: Node, theta: np.ndarray, sampling_rate: float, all_mut: set[int]
+    ) -> float:
+        return backend_geno.TreeMHNBackendCode().loglikelihood(
+            backend_geno.TreeWrapperCode(tree), theta, sampling_rate, all_mut
+        )
+
+    return [backend1, backend2]
+
+
+@pytest.mark.parametrize("backend", get_loglikelihood_functions())
+def test_likelihood_small_tree(backend) -> None:
     """
     Checks if the likelihood of a small tree is calculated
     correctly.
@@ -34,14 +74,14 @@ def test_likelihood_small_tree():
         ]
     )
     sampling_rate = 1.0
+    all_mut = set(range(1, 11))
 
-    backend = OriginalTreeMHNBackend()
-    log_value = backend.loglikelihood(TreeWrapper(A), theta, sampling_rate)
-
+    log_value = backend(A, theta, sampling_rate, all_mut)
     assert np.allclose(log_value, -5.793104, atol=1e-5)
 
 
-def test_likelihood_medium_tree():
+@pytest.mark.parametrize("backend", get_loglikelihood_functions())
+def test_likelihood_medium_tree(backend) -> None:
     """ 
    Checks if the likelihood of a medium-sized tree is calculated
    correctly.
@@ -78,13 +118,14 @@ def test_likelihood_medium_tree():
     )
     sampling_rate = 1.0
 
-    backend = OriginalTreeMHNBackend()
-    log_value = backend.loglikelihood(TreeWrapper(A), theta, sampling_rate)
+    all_mut = set(range(1, 11))
+    log_value = backend(A, theta, sampling_rate, all_mut)
 
     assert np.allclose(log_value, -14.729560, atol=1e-5)
 
 
-def test_likelihood_large_tree():
+@pytest.mark.parametrize("backend", get_loglikelihood_functions())
+def test_likelihood_large_tree(backend) -> None:
     """ 
    Checks if the likelihood of a large tree is calculated
    correctly.
@@ -127,8 +168,8 @@ def test_likelihood_large_tree():
         ]
     )
     sampling_rate = 1.0
+    all_mut = set(range(1, 11))
 
-    backend = OriginalTreeMHNBackend()
-    log_value = backend.loglikelihood(TreeWrapper(A), theta, sampling_rate)
+    log_value = backend(A, theta, sampling_rate, all_mut)
 
     assert np.allclose(log_value, -22.288420, atol=1e-5)
