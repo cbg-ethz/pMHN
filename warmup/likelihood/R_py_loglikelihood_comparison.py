@@ -1,6 +1,6 @@
 import pandas as pd
 import pmhn._trees._io as io
-from pmhn._trees._backend import OriginalTreeMHNBackend, LoglikelihoodSingleTree
+from pmhn._trees._backend import OriginalTreeMHNBackend, TreeWrapper
 import csv
 import numpy as np
 import time
@@ -53,7 +53,7 @@ start_time = time.time()
 backend = OriginalTreeMHNBackend()
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
-    tree_log = LoglikelihoodSingleTree(tree)
+    tree_log = TreeWrapper(tree)
     log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate)
 
     log_vec_py_AML[idx - 1] = log_value
@@ -61,7 +61,7 @@ for idx, tree in trees_AML.items():
 
 for idx, tree in trees_500.items():
     print(f"Processing tree {idx} of {len(trees_500)}")
-    tree_log = LoglikelihoodSingleTree(tree)
+    tree_log = TreeWrapper(tree)
     log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate)
     log_vec_py_500[idx - 1] = log_value
     print(f"log_value: {log_value}")

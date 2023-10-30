@@ -1,72 +1,21 @@
-from typing import Protocol
-
-
 import numpy as np
 
-from pmhn._trees._interfaces import Tree
 from pmhn._trees._tree_utils import create_all_subtrees, bfs_compare
 from anytree import Node, LevelOrderGroupIter
 
 
-class LoglikelihoodSingleTree:
+class TreeWrapper:
+    """A wrapper for a tree which stores all subtrees."""
+
     def __init__(self, tree: Node):
         self._subtrees_dict: dict[Node, int] = create_all_subtrees(tree)
 
 
-class IndividualTreeMHNBackendInterface(Protocol):
-    def loglikelihood(
-        self,
-        tree: Tree,
-        theta: np.ndarray,
-    ) -> float:
-        """Calculates loglikelihood `log P(tree | theta)`.
-
-        Args:
-            tree: a tree
-            theta: real-valued (i.e., log-theta) matrix,
-              shape (n_mutations, n_mutations)
-
-        Returns:
-            loglikelihood of the tree
-        """
-        raise NotImplementedError
-
-    def gradient(
-        self,
-        tree: Tree,
-        theta: np.ndarray,
-    ) -> np.ndarray:
-        """Calculates the partial derivatives of `log P(tree | theta)`
-        with respect to `theta`.
-
-        Args:
-            tree: a tree
-            theta: real-valued matrix,
-              shape (n_mutations, n_mutatations)
-
-        Returns:
-            gradient `d log P(tree | theta) / d theta`,
-              shape (n_mutations, n_mutations)
-        """
-        raise NotImplementedError
-
-    def gradient_and_loglikelihood(
-        self, tree: Tree, theta: np.ndarray
-    ) -> tuple[np.ndarray, float]:
-        """Returns the gradient and the loglikelihood.
-
-        Note:
-            This function may be faster than calling `gradient` and `loglikelihood`
-            separately.
-        """
-        return self.gradient(tree, theta), self.loglikelihood(tree, theta)
-
-
-class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
+class OriginalTreeMHNBackend:
     def __init__(self, jitter: float = 1e-10):
         self._jitter: float = jitter
 
-    def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
+    def _diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
         """
         Calculates a diagonal entry of the V matrix.
 
@@ -102,7 +51,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
 
         return lamb_sum
 
-    def off_diag_entry(self, tree1: Node, tree2: Node, theta: np.ndarray) -> float:
+    def _off_diag_entry(self, tree1: Node, tree2: Node, theta: np.ndarray) -> float:
         """
         Calculates an off-diagonal entry of the V matrix.
 
@@ -130,63 +79,38 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             return float(lamb)
 
     def loglikelihood(
-        self, tree: LoglikelihoodSingleTree, theta: np.ndarray, sampling_rate: float
+        self, tree_wrapper: TreeWrapper, theta: np.ndarray, sampling_rate: float
     ) -> float:
-        """
-        Calculates loglikelihood `log P(tree | theta)`.
+        """Calculates loglikelihood `log P(tree | theta)`.
 
         Args:
-            tree: a tree
+            tree: a wrapper storing a tree (and its subtrees)
             theta: real-valued (i.e., log-theta) matrix,
               shape (n_mutations, n_mutations)
-            sampling_rate: a scalar of type float
+            sampling_rate: a scalar representing sampling rate
+
         Returns:
             loglikelihood of the tree
         """
-        # TODO(Pawel): this is part of https://github.com/cbg-ethz/pMHN/issues/15
-        #   It can be implemented in any way.
-
-        subtrees_size = len(tree._subtrees_dict)
+        subtrees_size = len(tree_wrapper._subtrees_dict)
         x = np.zeros(subtrees_size)
         x[0] = 1
         n_mutations = len(theta)
         all_mut = set(i + 1 for i in range(n_mutations))
-        for i, (subtree_i, subtree_size_i) in enumerate(tree._subtrees_dict.items()):
+        for i, (subtree_i, subtree_size_i) in enumerate(
+            tree_wrapper._subtrees_dict.items()
+        ):
             V_col = {}
             V_diag = 0.0
             for j, (subtree_j, subtree_size_j) in enumerate(
-                tree._subtrees_dict.items()
+                tree_wrapper._subtrees_dict.items()
             ):
                 if subtree_size_i - subtree_size_j == 1:
-                    V_col[j] = -self.off_diag_entry(subtree_j, subtree_i, theta)
+                    V_col[j] = -self._off_diag_entry(subtree_j, subtree_i, theta)
                 elif i == j:
-                    V_diag = sampling_rate - self.diag_entry(subtree_i, theta, all_mut)
+                    V_diag = sampling_rate - self._diag_entry(subtree_i, theta, all_mut)
             for index, val in V_col.items():
                 x[i] -= val * x[index]
             x[i] /= V_diag
 
         return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
-
-    def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
-        """Calculates the partial derivatives of `log P(tree | theta)`
-        with respect to `theta`.
-
-        Args:
-            tree: a tree
-            theta: real-valued matrix, shape (n_mutations, n_mutatations)
-
-        Returns:
-            gradient `d log P(tree | theta) / d theta`,
-              shape (n_mutations, n_mutations)
-        """
-        # TODO(Pawel): This is part of
-        #    https://github.com/cbg-ethz/pMHN/issues/18,
-        #    but it is *not* a priority.
-        #    We will try to do the modelling as soon as possible,
-        #    starting with a sequential Monte Carlo sampler
-        #    and Metropolis transitions.
-        #    Only after initial experiments
-        #    (we will probably see that it's not scalable),
-        #    we'll consider switching to Hamiltonian Monte Carlo,
-        #    which requires gradients.
-        raise NotImplementedError
