@@ -46,7 +46,11 @@ rule all:
         trees = expand("{scenario}/trees.pdf", scenario=SCENARIOS.keys()),
         mcmc_samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys()),
         theta_samples = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
-        posterior_theta_plots=expand("{scenario}/posterior_theta_from_mcmc.pdf", scenario=SCENARIOS.keys())
+        posterior_theta_plots=expand("{scenario}/posterior_theta_from_mcmc.pdf", scenario=SCENARIOS.keys()),
+        trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
+        
 rule plot_theta_from_data:
     input:
         arrays="{scenario}/arrays.npz"
@@ -281,3 +285,30 @@ rule plot_posterior_thetas_from_mcmc:
 
         fig, _ = pmhn.plot_theta_samples(posterior_samples, width=6, height=4)
         fig.savefig(str(output))
+
+rule mcmc_plots_and_summary:
+    input:
+        samples=lambda wildcards: expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
+    output:
+        trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
+    run:
+        
+        for scenario in SCENARIOS.keys():
+            
+            idata = az.from_netcdf(f"{scenario}/mcmc-samples.nc")
+            
+            
+            az.plot_trace(idata, var_names=['theta'])
+            plt.savefig(f"{scenario}/posterior/trace_plot_theta.pdf")
+            plt.close()
+
+            az.plot_posterior(idata, var_names=['theta'], kind='kde')
+            plt.savefig(f"{scenario}/posterior/posterior_plot_theta.pdf")
+            plt.close()
+
+
+            
+            summary = az.summary(idata, var_names=['theta'])
+            summary.to_csv(f"{scenario}/posterior/mcmc_summary_theta.txt", sep='\t')
