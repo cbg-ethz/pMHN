@@ -1,294 +1,49 @@
-from pmhn._trees._backend import OriginalTreeMHNBackend
-from pmhn._trees._tree_utils import create_all_subtrees
-from anytree import Node
 import numpy as np
+import pytest
+from anytree import Node
+
+import pmhn._trees._backend as backend_orig
+import pmhn._trees._backend_code as backend_geno
 
 
-def test_create_V_Mat():
-    """
-    Checks if create_V_Mat is implemented correctly.
+def get_loglikelihood_functions() -> list:
+    """This is an auxiliary function which returns a list of
+    loglikelihood functions to be tested.
 
-    tree:
-        0
-      /   \
-     1     3 
-    /
-   3
-    """
+    Each of these functions has signature:
 
-    true_Q = np.array(
-        [
-            [
-                -(np.exp(-1.41) + np.exp(-2.26) + np.exp(-2.55)),
-                np.exp(-1.41),
-                np.exp(-2.55),
-                0,
-                0,
-                0,
-            ],
-            [
-                0,
-                -(
-                    np.exp(-2.26)
-                    + np.exp(-2.55)
-                    + np.exp(-1.12 - 2.26)
-                    + np.exp(1 - 2.55)
-                ),
-                0,
-                np.exp(1 - 2.55),
-                np.exp(-2.55),
-                0,
-            ],
-            [
-                0,
-                0,
-                -(
-                    np.exp(-1.41)
-                    + np.exp(-2.26)
-                    + np.exp(-1.41 + 3)
-                    + np.exp(-2.26 + 2)
-                ),
-                0,
-                np.exp(-1.41),
-                0,
-            ],
-            [
-                0,
-                0,
-                0,
-                -(
-                    np.exp(-2.26)
-                    + np.exp(-2.55)
-                    + np.exp(-2.26 - 1.12)
-                    + np.exp(-2.26 - 1.12 + 2)
-                ),
-                0,
-                np.exp(-2.55),
-            ],
-            [
-                0,
-                0,
-                0,
-                0,
-                -(
-                    np.exp(-2.26)
-                    + np.exp(-2.26 - 1.12)
-                    + np.exp(-2.55 + 1)
-                    + np.exp(-1.41 + 3)
-                    + np.exp(-2.26 + 2)
-                ),
-                np.exp(-2.55 + 1),
-            ],
-            [
-                0,
-                0,
-                0,
-                0,
-                0,
-                -(
-                    np.exp(-2.26)
-                    + np.exp(-2.26 - 1.12)
-                    + np.exp(-2.26 + 2 - 1.12)
-                    + np.exp(-1.41 + 3)
-                    + np.exp(-2.26 + 2)
-                ),
-            ],
-        ]
-    )
-    A = Node(0)
-    B = Node(1, parent=A)
-    Node(3, parent=A)
-    Node(3, parent=B)
-    subtrees = create_all_subtrees(A)
-    subtrees_size = len(subtrees)
-    sampling_rate = 1.0
-    true_V = np.eye(subtrees_size) * sampling_rate - true_Q
-    backend = OriginalTreeMHNBackend()
-    theta = np.array([[-1.41, 2, 3], [-1.12, -2.26, 2], [1, -0.86, -2.55]])
+        loglikelihood(
+            tree: Node,
+            theta: np.ndarray,
+            sampling_rate: float,
+            all_mut: set[int],
+        ) -> float
 
-    V = backend.create_V_Mat(A, theta, sampling_rate)
-
-    assert np.allclose(V, true_V, atol=1e-8)
-
-
-def test_diag_entry():
-    r"""
-    
-    Checks if the diagonal values of the V matrix are calculated correctly.
-
-        0
-     /  |  \
-    2   1   3   
-    |   |
-    3   3
-
-
-    augmented tree:
-
-
-        0
-     /  |  \
-    2   1   3
-    |\  |\  |\
-    3 1 3 2 1 2
-    |   |  
-    1   2
-        
-    """
-    A = Node(0)
-    B = Node(2, parent=A)
-    D = Node(1, parent=A)
-    Node(3, parent=A)
-    Node(3, parent=B)
-    Node(3, parent=D)
-    theta = np.array([[-1.41, 2, 3], [-1.12, -2.26, 2], [1, -0.86, -2.55]])
-    true_diag_entry = -(
-        np.exp(-1.41 + 2)
-        + np.exp(-2.26 - 1.12)
-        + np.exp(-1.41 + 3)
-        + np.exp(-2.26 + 2)
-        + np.exp(-1.41 + 2 + 3)
-        + np.exp(-2.26 + 2 - 1.12)
-    )
-    backend = OriginalTreeMHNBackend()
-    diag_entry = backend.diag_entry(A, theta)
-
-    assert np.allclose(diag_entry, true_diag_entry, atol=1e-8)
-
-
-def test_off_diag_entry_valid():
-    r"""
-    Checks if the off-diagonal entries of the V matrix
-    are calculated correctly.
-    
-    first tree:
-        0
-     /  |  \
-    2   1   3   
-    |   
-    3   
-
-    second tree:
-        0
-     /  |  \
-    2   1   3   
-    |   |
-    3   3 
-       
-        
+    Note:
+        Whenever a new backend is used
+        (and it has a wrapper around trees for memoization),
+        it could just be added here.
     """
 
-    theta = np.array([[-1.41, 2, 3], [-1.12, -2.26, 2], [1, -0.86, -2.55]])
-    # first tree
-    A_1 = Node(0)
-    B_1 = Node(2, parent=A_1)
-    Node(1, parent=A_1)
-    Node(3, parent=A_1)
-    Node(3, parent=B_1)
+    def backend1(
+        tree: Node, theta: np.ndarray, sampling_rate: float, all_mut: set[int]
+    ) -> float:
+        return backend_orig.OriginalTreeMHNBackend().loglikelihood(
+            backend_orig.TreeWrapper(tree), theta, sampling_rate
+        )
 
-    # second tree
-    A_2 = Node(0)
-    B_2 = Node(2, parent=A_2)
-    D_2 = Node(1, parent=A_2)
-    Node(3, parent=A_2)
-    Node(3, parent=B_2)
-    Node(3, parent=D_2)
+    def backend2(
+        tree: Node, theta: np.ndarray, sampling_rate: float, all_mut: set[int]
+    ) -> float:
+        return backend_geno.TreeMHNBackendCode().loglikelihood(
+            backend_geno.TreeWrapperCode(tree), theta, sampling_rate, all_mut
+        )
 
-    true_off_diag_entry = np.exp(-2.55 + 1)
-    backend = OriginalTreeMHNBackend()
-    off_diag_entry = backend.off_diag_entry(A_1, A_2, theta)
-
-    assert np.allclose(off_diag_entry, true_off_diag_entry, atol=1e-8)
+    return [backend1, backend2]
 
 
-def test_off_diag_entry_invalid_size():
-    r"""
-
-    Checks if off_diag_entry successfully returns 0 when the size is invalid
-    (i.e the first tree is not smaller than the second tree by one).
-
-    first tree:
-        0
-     /  |  \
-    2   1   3   
-    |   
-    3   
-
-    second tree:
-        0
-     /  |  \
-    2   1   3   
-    |   |   | 
-    3   3   2 
-       
-        
-    """
-
-    # first tree
-    A_1 = Node(0)
-    B_1 = Node(2, parent=A_1)
-    Node(1, parent=A_1)
-    Node(3, parent=A_1)
-    Node(3, parent=B_1)
-
-    # second tree
-    A_2 = Node(0)
-    B_2 = Node(2, parent=A_2)
-    C_2 = Node(1, parent=A_2)
-    D_2 = Node(3, parent=A_2)
-    Node(3, parent=B_2)
-    Node(3, parent=C_2)
-    Node(2, parent=D_2)
-
-    theta = np.array([[-1.41, 2, 3], [-1.12, -2.26, 2], [1, -0.86, -2.55]])
-    backend = OriginalTreeMHNBackend()
-
-    assert backend.off_diag_entry(A_1, A_2, theta) == 0
-
-
-def test_off_diag_entry_not_subset():
-    r"""
-    Checks if the off_diag_entry succesfully returns 0 when the
-    first tree is not a subtree of the second tree.
-
-    first tree:
-        0
-     /  |  \
-    2   1   3   
-    |   
-    3   
-
-    second tree:
-        0
-     /  |  \
-    2   1   3   
-        |   | 
-        3   2 
-       
-        
-    """
-    # first tree
-    A_1 = Node(0)
-    B_1 = Node(2, parent=A_1)
-    Node(1, parent=A_1)
-    Node(3, parent=A_1)
-    Node(3, parent=B_1)
-
-    # second tree
-    A_2 = Node(0)
-    Node(2, parent=A_2)
-    C_2 = Node(1, parent=A_2)
-    D_2 = Node(3, parent=A_2)
-    Node(3, parent=C_2)
-    Node(2, parent=D_2)
-
-    theta = np.array([[-1.41, 2, 3], [-1.12, -2.26, 2], [1, -0.86, -2.55]])
-    backend = OriginalTreeMHNBackend()
-
-    assert backend.off_diag_entry(A_1, A_2, theta) == 0
-
-
-def test_likelihood_small_tree():
+@pytest.mark.parametrize("backend", get_loglikelihood_functions())
+def test_likelihood_small_tree(backend) -> None:
     """
     Checks if the likelihood of a small tree is calculated
     correctly.
@@ -319,14 +74,14 @@ def test_likelihood_small_tree():
         ]
     )
     sampling_rate = 1.0
+    all_mut = set(range(1, 11))
 
-    backend = OriginalTreeMHNBackend()
-    log_value = backend.loglikelihood(A, theta, sampling_rate)
-
+    log_value = backend(A, theta, sampling_rate, all_mut)
     assert np.allclose(log_value, -5.793104, atol=1e-5)
 
 
-def test_likelihood_medium_tree():
+@pytest.mark.parametrize("backend", get_loglikelihood_functions())
+def test_likelihood_medium_tree(backend) -> None:
     """ 
    Checks if the likelihood of a medium-sized tree is calculated
    correctly.
@@ -363,13 +118,14 @@ def test_likelihood_medium_tree():
     )
     sampling_rate = 1.0
 
-    backend = OriginalTreeMHNBackend()
-    log_value = backend.loglikelihood(A, theta, sampling_rate)
+    all_mut = set(range(1, 11))
+    log_value = backend(A, theta, sampling_rate, all_mut)
 
     assert np.allclose(log_value, -14.729560, atol=1e-5)
 
 
-def test_likelihood_large_tree():
+@pytest.mark.parametrize("backend", get_loglikelihood_functions())
+def test_likelihood_large_tree(backend) -> None:
     """ 
    Checks if the likelihood of a large tree is calculated
    correctly.
@@ -412,8 +168,8 @@ def test_likelihood_large_tree():
         ]
     )
     sampling_rate = 1.0
+    all_mut = set(range(1, 11))
 
-    backend = OriginalTreeMHNBackend()
-    log_value = backend.loglikelihood(A, theta, sampling_rate)
+    log_value = backend(A, theta, sampling_rate, all_mut)
 
     assert np.allclose(log_value, -22.288420, atol=1e-5)

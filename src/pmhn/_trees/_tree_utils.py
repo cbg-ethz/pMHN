@@ -55,7 +55,7 @@ def all_combinations_of_elements(*lists):
                 yield list(element_combination)
 
 
-def create_subtree(original_root: Node, nodes_list: list[Node]) -> Optional[Node]:
+def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
     """
     Creates a subtree given a list of nodes and the root node.
 
@@ -71,8 +71,7 @@ def create_subtree(original_root: Node, nodes_list: list[Node]) -> Optional[Node
         if node in nodes_list:
             parent_node = next((n for n in nodes_list if n is node.parent), None)
             nodes_dict[node] = Node(node.name, parent=nodes_dict.get(parent_node))
-
-    return nodes_dict.get(original_root)
+    return nodes_dict[original_root]
 
 
 def get_subtrees(node: Node) -> list[list[Node]]:
@@ -86,7 +85,8 @@ def get_subtrees(node: Node) -> list[list[Node]]:
     Args:
         node: the root node
     Returns:
-           a list of subtrees
+        a list of subtrees
+
     """
     if not node.children:
         return [[node]]
@@ -95,44 +95,44 @@ def get_subtrees(node: Node) -> list[list[Node]]:
 
     combined_subtrees = all_combinations_of_elements(*child_subtrees)
 
-    result_subtrees = []
-    result_subtrees.append([node])
-    for combination in combined_subtrees:
-        subtree_with_root = [node] + [
-            item for sublist in combination for item in sublist
-        ]
-        result_subtrees.append(subtree_with_root)
+    result_subtrees = [[node]] + [
+        [node] + [item for sublist in combination for item in sublist]
+        for combination in combined_subtrees
+    ]
 
     return result_subtrees
 
 
-def create_all_subtrees(root: Node) -> list[Node]:
+def create_all_subtrees(root: Node) -> dict[Node, int]:
     """
-    Creates a list of subtrees and sorts the list in ascending subtree size.
+    Creates a dictionary where each key is a subtree,
+    and each value is the size of that subtree.
+
 
     Args:
         root: the root node
     Returns:
-            the final list of subtrees
+        A dictionary mapping subtrees to their sizes
     """
     all_node_lists = get_subtrees(root)
     all_node_lists = sorted(all_node_lists, key=len)
-    all_subtrees = []
-    for subtree in all_node_lists:
-        all_subtrees.append(create_subtree(root, subtree))
-    return all_subtrees
+    all_subtrees_dict = {
+        create_subtree(root, node_list): len(node_list) for node_list in all_node_lists
+    }
+    return all_subtrees_dict
 
 
-def get_lineage(node: Node) -> list[int]:
+def get_lineage(node: Node) -> tuple[int]:
     """
-    Creates a list of the names of the nodes that
-    are in the lineage of input node.
+    Creates a tuple of the names of the nodes that
+    are in the lineage of the input node.
+
     Args:
         node: a node
     Returns:
             the lineage of a node
     """
-    return [ancestor.name for ancestor in node.path]  # type: ignore
+    return tuple(ancestor.name for ancestor in node.path)  # type: ignore
 
 
 def check_equality(tree1: Optional[Node], tree2: Optional[Node]) -> bool:
@@ -152,8 +152,9 @@ def check_equality(tree1: Optional[Node], tree2: Optional[Node]) -> bool:
         if len(tree1.descendants) != len(tree2.descendants):
             return False
     for nodes1, nodes2 in zip(iter1, iter2):
-        set_nodes1_lineages = {tuple(get_lineage(node)) for node in nodes1}
-        set_nodes2_lineages = {tuple(get_lineage(node)) for node in nodes2}
+        set_nodes1_lineages = {get_lineage(node) for node in nodes1}
+        set_nodes2_lineages = {get_lineage(node) for node in nodes2}
+
         additional_nodes_lineages = set_nodes2_lineages ^ set_nodes1_lineages
         if len(additional_nodes_lineages) != 0:
             return False
@@ -163,40 +164,50 @@ def check_equality(tree1: Optional[Node], tree2: Optional[Node]) -> bool:
 
 def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
     """
-    Checks if tree1 is a subtree of tree2 and is smaller in
-    size by one.
+    Checks if tree1 is a subtree of tree2 with the assumption
+    that tree2 is larger than the first tree by one.
+
 
     Args:
         tree1: the first tree
         tree2: the second tree
     Returns:
            the additional node in the second tree if available, otherwise None.
+
     """
+
     diff_count = 0
     iter1 = list(LevelOrderGroupIter(tree1))
     iter2 = list(LevelOrderGroupIter(tree2))
     exit_node = None
-    if len(list(tree2.descendants)) - len(list(tree1.descendants)) != 1:
-        return None
-    for nodes1, nodes2 in zip(iter1, iter2):
-        set_nodes1_lineages = {tuple(get_lineage(node)) for node in nodes1}
-        set_nodes2_lineages = {tuple(get_lineage(node)) for node in nodes2}
+
+    for level, (nodes1, nodes2) in enumerate(zip(iter1, iter2)):
+        dict_nodes1_lineages = {node: get_lineage(node) for node in nodes1}
+        dict_nodes2_lineages = {node: get_lineage(node) for node in nodes2}
+        set_nodes1_lineages = set(dict_nodes1_lineages.values())
+        set_nodes2_lineages = set(dict_nodes2_lineages.values())
+
         additional_nodes_lineages = set_nodes2_lineages ^ set_nodes1_lineages
         diff_count += len(additional_nodes_lineages)
 
         if diff_count == 1 and exit_node is None:
             additional_node_lineage = additional_nodes_lineages.pop()
+
             for node in nodes1:
-                if tuple(get_lineage(node)) == additional_node_lineage:
+                if dict_nodes1_lineages[node] == additional_node_lineage:
                     return None
 
             for node in nodes2:
-                if tuple(get_lineage(node)) == additional_node_lineage:
+                if dict_nodes2_lineages[node] == additional_node_lineage:
                     exit_node = node
-        if diff_count > 1:
-            return None
-    if len(iter1) < len(iter2):
+                    break
+
+    if diff_count > 1:
+        return None
+
+    if diff_count == 0:
         return iter2[-1][0]
+
     return exit_node
 
 

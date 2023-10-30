@@ -16,7 +16,7 @@ def test_loglikelihood(n_patients: int, n_genes: int) -> None:
     mutations = rng.binomial(1, 0.5, size=(n_patients, n_genes))
     thetas = rng.normal(size=(n_patients, n_genes, n_genes))
 
-    loglikelihood = np.sum(
+    loglikelihood = np.sum(  # pyright: ignore
         [
             lmhn.MHNCythonBackend().gradient_and_loglikelihood(
                 mutations=mutations[i].reshape((1, -1)), theta=thetas[i]

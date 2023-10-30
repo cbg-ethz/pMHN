@@ -1,6 +1,6 @@
 import pandas as pd
 import pmhn._trees._io as io
-from pmhn._trees._backend import OriginalTreeMHNBackend, TreeWrapper
+from pmhn._trees._backend_code import TreeMHNBackendCode, TreeWrapperCode
 import csv
 import numpy as np
 import time
@@ -49,26 +49,29 @@ trees_500 = io.parse_forest(df_500, naming=naming)
 # calculate loglikelihoods
 log_vec_py_AML = np.empty(len(trees_AML))
 log_vec_py_500 = np.empty(len(trees_500))
+
 start_time = time.time()
-backend = OriginalTreeMHNBackend()
+backend = TreeMHNBackendCode()
+theta_AML_size = len(theta_AML)
+all_mut_AML = set(range(1, theta_AML_size + 1))
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
-    tree_log = TreeWrapper(tree)
-    log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate)
-
+    tree_log = TreeWrapperCode(tree)
+    log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate, all_mut_AML)
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
-
+theta_500_size = len(theta_500)
+all_mut_500 = set(range(1, theta_500_size + 1))
 for idx, tree in trees_500.items():
     print(f"Processing tree {idx} of {len(trees_500)}")
-    tree_log = TreeWrapper(tree)
-    log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate)
+    tree_log = TreeWrapperCode(tree)
+    log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate, all_mut_500)
     log_vec_py_500[idx - 1] = log_value
     print(f"log_value: {log_value}")
+
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Time elapsed: {elapsed_time} seconds")
-
 # write Python loglikelihoods to CSV
 np.savetxt("likelihood_py/log_vec_py_AML.csv", log_vec_py_AML, delimiter=",")
 np.savetxt("likelihood_py/log_vec_py_500.csv", log_vec_py_500, delimiter=",")
