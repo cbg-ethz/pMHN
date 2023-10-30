@@ -29,15 +29,15 @@ class Settings:
     mean_sampling_time: float = 450.0 
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 1000
-    mcmc_samples: int = 1000
+    tuning_samples: int = 24 
+    mcmc_samples: int = 24
 
     smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "1000_patients_1000_samples_5_mutations": Settings(n_mutations=5, n_patients=1000, p_offdiag=3/8**2),
+    "10000_patients_24_samples_5_mutations": Settings(n_mutations=5, n_patients=10000, p_offdiag=3/8**2),
 }
 
 rule all:
