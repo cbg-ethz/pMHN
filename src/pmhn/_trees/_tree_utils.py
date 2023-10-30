@@ -55,9 +55,7 @@ def all_combinations_of_elements(*lists):
                 yield list(element_combination)
 
 
-
 def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
-
     """
     Creates a subtree given a list of nodes and the root node.
 
@@ -74,7 +72,6 @@ def create_subtree(original_root: Node, nodes_list: list[Node]) -> Node:
             parent_node = next((n for n in nodes_list if n is node.parent), None)
             nodes_dict[node] = Node(node.name, parent=nodes_dict.get(parent_node))
     return nodes_dict[original_root]
-
 
 
 def get_subtrees(node: Node) -> list[list[Node]]:
@@ -102,7 +99,6 @@ def get_subtrees(node: Node) -> list[list[Node]]:
         [node] + [item for sublist in combination for item in sublist]
         for combination in combined_subtrees
     ]
-
 
     return result_subtrees
 
@@ -137,7 +133,6 @@ def get_lineage(node: Node) -> tuple[int]:
             the lineage of a node
     """
     return tuple(ancestor.name for ancestor in node.path)  # type: ignore
-
 
 
 def check_equality(tree1: Optional[Node], tree2: Optional[Node]) -> bool:
@@ -181,7 +176,6 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
 
     """
 
-
     diff_count = 0
     iter1 = list(LevelOrderGroupIter(tree1))
     iter2 = list(LevelOrderGroupIter(tree2))
@@ -213,7 +207,6 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
 
     if diff_count == 0:
         return iter2[-1][0]
-
 
     return exit_node
 

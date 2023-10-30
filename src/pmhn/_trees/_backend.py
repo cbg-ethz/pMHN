@@ -13,7 +13,6 @@ class LoglikelihoodSingleTree:
         self._subtrees_dict: dict[Node, int] = create_all_subtrees(tree)
 
 
-
 class IndividualTreeMHNBackendInterface(Protocol):
     def loglikelihood(
         self,
@@ -65,11 +64,9 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
     def __init__(self, jitter: float = 1e-10):
-
         self._jitter: float = jitter
 
     def diag_entry(self, tree: Node, theta: np.ndarray, all_mut: set[int]) -> float:
-
         """
         Calculates a diagonal entry of the V matrix.
 
@@ -84,7 +81,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             the diagonal entry of the V matrix corresponding to tree
         """
         lamb_sum = 0
-
 
         for level in LevelOrderGroupIter(tree):
             for node in level:
@@ -103,8 +99,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
                         lamb += theta[mutation - 1][j - 1]
                     lamb = np.exp(lamb)
                     lamb_sum -= lamb
-
-
 
         return lamb_sum
 
@@ -136,9 +130,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             return float(lamb)
 
     def loglikelihood(
-
         self, tree: LoglikelihoodSingleTree, theta: np.ndarray, sampling_rate: float
-
     ) -> float:
         """
         Calculates loglikelihood `log P(tree | theta)`.
@@ -174,7 +166,6 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             x[i] /= V_diag
 
         return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
-
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:
         """Calculates the partial derivatives of `log P(tree | theta)`
