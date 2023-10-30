@@ -1,6 +1,6 @@
 import pandas as pd
 import pmhn._trees._io as io
-from pmhn._trees._backend_geno import OriginalTreeMHNBackend, LoglikelihoodSingleTree
+from pmhn._trees._backend_code import TreeWrapperCode, TreeMHNBackendCode
 import csv
 import numpy as np
 import time
@@ -52,12 +52,12 @@ log_vec_py_AML = np.empty(len(trees_AML))
 log_vec_py_500 = np.empty(len(trees_500))
 log_vec_py_1000 = np.empty(len(trees_1000))
 start_time = time.time()
-backend = OriginalTreeMHNBackend()
+backend = TreeMHNBackendCode()
 theta_AML_size = len(theta_AML)
 all_mut_AML = set(range(1, theta_AML_size + 1))
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
-    tree_log = LoglikelihoodSingleTree(tree)
+    tree_log = TreeWrapperCode(tree)
     log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate, all_mut_AML)
     log_vec_py_AML[idx - 1] = log_value
     print(f"log_value: {log_value}")
@@ -65,7 +65,7 @@ theta_500_size = len(theta_500)
 all_mut_500 = set(range(1, theta_500_size + 1))
 for idx, tree in trees_500.items():
     print(f"Processing tree {idx} of {len(trees_500)}")
-    tree_log = LoglikelihoodSingleTree(tree)
+    tree_log = TreeWrapperCode(tree)
     log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate, all_mut_500)
     log_vec_py_500[idx - 1] = log_value
     print(f"log_value: {log_value}")
@@ -73,7 +73,7 @@ theta_1000_size = len(theta_1000)
 all_mut_1000 = set(range(1, theta_1000_size + 1))
 for idx, tree in trees_1000.items():
     print(f"Processing tree {idx} of {len(trees_1000)}")
-    tree_log = LoglikelihoodSingleTree(tree)
+    tree_log = TreeWrapperCode(tree)
     log_value = backend.loglikelihood(tree_log, theta_1000, sampling_rate, all_mut_1000)
     log_vec_py_1000[idx - 1] = log_value
     print(f"log_value: {log_value}")
