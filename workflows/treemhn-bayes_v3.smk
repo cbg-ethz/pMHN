@@ -26,10 +26,10 @@ class Settings:
     n_mutations: int
     n_patients: int
     p_offdiag: float
-    mean_sampling_time: float = 1000.0
+    mean_sampling_time: float = 450.0
     data_seed: int = 111
-    prior_sampling_seed: int = 222
-    tuning_samples: int = 24
+    prior_sampling_seed: int = 100
+    tuning_samples: int = 100
     mcmc_samples: int = 24
 
     smc_particles: int = 24
@@ -37,7 +37,7 @@ class Settings:
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "10000_patients_24_samples_5_mutations_100000_jitter=0": Settings(n_mutations=5, n_patients=10000, p_offdiag=3/8**2),
+    "100_patients_100_samples_4_mutations_100000_jitter=0_prior_normal": Settings(n_mutations=4, n_patients=100, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -157,7 +157,7 @@ rule generate_data:
 
 def prepare_full_model(trees, mean_sampling_time, n_mutations, all_mut) -> pm.Model:
     loglikelihood = TreeMHNLoglikelihood(data=trees, mean_sampling_time = mean_sampling_time, all_mut = all_mut, backend=OriginalTreeMHNBackend())
-    model = pmhn.prior_regularized_horseshoe(n_mutations=n_mutations)
+    model = pmhn.prior_normal(n_mutations=n_mutations)
 
     with model:
         pm.Potential("loglikelihood", loglikelihood(model.theta))
@@ -173,7 +173,7 @@ rule sample_prior:
         rng = np.random.default_rng(settings.prior_sampling_seed)
         n_samples: int = 300
 
-        model = pmhn.prior_regularized_horseshoe(n_mutations=settings.n_mutations)
+        model = pmhn.prior_normal(n_mutations=settings.n_mutations)
         with model:
             idata = pm.sample_prior_predictive(samples=n_samples, random_seed=rng)
         idata.to_netcdf(output.prior_samples)
