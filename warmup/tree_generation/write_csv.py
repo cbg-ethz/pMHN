@@ -53,8 +53,8 @@ if __name__ == "__main__":
             n_points,
             theta,
             mean_sampling_time,
-            min_tree_size=None,
-            max_tree_size=None,
+            min_tree_size=2,
+            max_tree_size=11,
         )
         for i, tree in enumerate(trees):
             print(f"tree {i}")

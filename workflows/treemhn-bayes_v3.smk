@@ -26,7 +26,7 @@ class Settings:
     n_mutations: int
     n_patients: int
     p_offdiag: float
-    mean_sampling_time: float = 100000.0 
+    mean_sampling_time: float = 1000.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
     tuning_samples: int = 24
@@ -37,7 +37,7 @@ class Settings:
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "10000_patients_24_samples_3_mutations_100000_jitter=0": Settings(n_mutations=3, n_patients=10000, p_offdiag=3/8**2),
+    "10000_patients_24_samples_5_mutations_100000_jitter=0": Settings(n_mutations=5, n_patients=10000, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -116,12 +116,14 @@ rule generate_data:
 
         theta = np.array(
         [
-            [-1.41, 0.00, 0.00],
-            [-1.12, -2.26, 0.00],
-            [0.00, -0.86, -2.55]
-           
+            [-1.41, 0.00, 0.00, 4.91, 1.03],
+            [-1.12, -2.26, 0.00, 0.82, 0.00],
+            [0.00, -0.86, -2.55, 1.58, 0.00],
+            [0.00, 0.00, 0.00, -3.69, 0.00],
+            [-3.08, -1.42, -3.14, 0.00, -3.95]
+            
         ]
-    )   
+    ) 
         theta = theta*5
         print(theta)
         sampling_times, trees_dict = simulate_trees(

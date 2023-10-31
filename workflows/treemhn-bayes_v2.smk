@@ -29,15 +29,15 @@ class Settings:
     mean_sampling_time: float = 100000.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 24 
-    mcmc_samples: int = 24
+    tuning_samples: int = 1000
+    mcmc_samples: int = 1000
 
     smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "1000_patients_24_samples_3_mutations_100000_jitter=0": Settings(n_mutations=3, n_patients=1000, p_offdiag=3/8**2),
+    "1000_patients_1000_samples_3_mutations_100000_jitter=0_prior_normal": Settings(n_mutations=3, n_patients=1000, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -155,7 +155,7 @@ rule generate_data:
 
 def prepare_full_model(trees, mean_sampling_time, n_mutations, all_mut) -> pm.Model:
     loglikelihood = TreeMHNLoglikelihood(data=trees, mean_sampling_time = mean_sampling_time, all_mut = all_mut, backend=OriginalTreeMHNBackend())
-    model = pmhn.prior_regularized_horseshoe(n_mutations=n_mutations)
+    model = pmhn.prior_normal(n_mutations=n_mutations)
 
     with model:
         pm.Potential("loglikelihood", loglikelihood(model.theta))
@@ -171,7 +171,7 @@ rule sample_prior:
         rng = np.random.default_rng(settings.prior_sampling_seed)
         n_samples: int = 300
 
-        model = pmhn.prior_regularized_horseshoe(n_mutations=settings.n_mutations)
+        model = pmhn.prior_normal(n_mutations=settings.n_mutations)
         with model:
             idata = pm.sample_prior_predictive(samples=n_samples, random_seed=rng)
         idata.to_netcdf(output.prior_samples)
@@ -293,7 +293,8 @@ rule mcmc_plots_and_summary:
             
             idata = az.from_netcdf(f"{scenario}/mcmc-samples.nc")
             
-            
+            print(idata.posterior['theta'].shape)
+ 
             az.plot_trace(idata, var_names=['theta'])
             plt.savefig(f"{scenario}/posterior/trace_plot_theta.pdf")
             plt.close()

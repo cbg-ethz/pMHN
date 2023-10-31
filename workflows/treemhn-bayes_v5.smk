@@ -29,27 +29,27 @@ class Settings:
     mean_sampling_time: float = 100000.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 100
-    mcmc_samples: int = 100
+    tuning_samples: int = 24
+    mcmc_samples: int = 24
 
-    smc_particles: int = 100
+    smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "1000_patients_100_particles_3_mutations_100000_jitter=0_smc": Settings(n_mutations=3, n_patients=1000, p_offdiag=3/8**2),
+    "10000_patients_24_samples_3_mutations_100000_jitter=0": Settings(n_mutations=3, n_patients=10000, p_offdiag=3/8**2),
 }
 
 rule all:
     input:
         theta_matrices = expand("{scenario}/theta.pdf", scenario=SCENARIOS.keys()),
         trees = expand("{scenario}/trees.pdf", scenario=SCENARIOS.keys()),
-        smc_samples = expand("{scenario}/smc-samples.nc", scenario=SCENARIOS.keys()),
+        mcmc_samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys()),
         theta_samples = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
-        posterior_theta_plots=expand("{scenario}/posterior_theta_from_smc.pdf", scenario=SCENARIOS.keys()),
+        posterior_theta_plots=expand("{scenario}/posterior_theta_from_mcmc.pdf", scenario=SCENARIOS.keys()),
         trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
         posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
-        summary= expand("{scenario}/posterior/smc_summary_theta.txt", scenario=SCENARIOS.keys())
+        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
         
 rule plot_theta_from_data:
     input:
@@ -196,7 +196,7 @@ rule smc_sample_one_chain:
         chain = int(wildcards.chain)
         settings = SCENARIOS[wildcards.scenario]
         with np.load(input.arrays, allow_pickle=True) as data:
-            trees = data["trees"]
+            tree_dict = data["trees"]
             theta = data["theta"]
         
         n_mutations = len(theta) 
@@ -282,19 +282,18 @@ rule plot_posterior_thetas_from_mcmc:
 
 rule mcmc_plots_and_summary:
     input:
-        samples=lambda wildcards: expand("{scenario}/smc-samples.nc", scenario=SCENARIOS.keys())
+        samples=lambda wildcards: expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
     output:
         trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
         posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
-        summary= expand("{scenario}/posterior/smc_summary_theta.txt", scenario=SCENARIOS.keys())
+        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
     run:
         
         for scenario in SCENARIOS.keys():
             
             idata = az.from_netcdf(f"{scenario}/mcmc-samples.nc")
             
-            print(idata.posterior['theta'].shape)
- 
+            
             az.plot_trace(idata, var_names=['theta'])
             plt.savefig(f"{scenario}/posterior/trace_plot_theta.pdf")
             plt.close()
