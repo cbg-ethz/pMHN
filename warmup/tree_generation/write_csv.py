@@ -39,9 +39,9 @@ if __name__ == "__main__":
 
     rng = np.random.default_rng(111)
     theta = mhn_array
-    mean_sampling_time = 0.8
+    mean_sampling_time = 1.0
 
-    tree_counts = [200]
+    tree_counts = [500, 5000, 10000, 50000]
 
     min_tree_size = 2
     max_tree_size = 11

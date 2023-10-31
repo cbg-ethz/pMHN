@@ -69,7 +69,7 @@ class IndividualTreeMHNBackendInterface(Protocol):
 
 
 class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
-    def __init__(self, jitter: float = 1e-10):
+    def __init__(self, jitter: float = 0.0):
         self._jitter: float = jitter
 
     def diag_entry(
@@ -209,6 +209,7 @@ class OriginalTreeMHNBackend(IndividualTreeMHNBackendInterface):
             for index, val in V_col:
                 x[i] -= val * x[index]
             x[i] /= V_diag
+
         return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
 
     def gradient(self, tree: Node, theta: np.ndarray) -> np.ndarray:

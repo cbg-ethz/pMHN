@@ -39,6 +39,7 @@ class TreeMHNLoglikelihood(Op):
             The arguments and the output are PyTensor variables.
         """
         (theta,) = inputs  # Unwrap the inputs
+        print(self._mean_sampling_time)
         loglikelihoods = self._backend.loglikelihood_tree_list(
             trees=self._data,
             theta=theta,
