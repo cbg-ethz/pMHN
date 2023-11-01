@@ -37,7 +37,7 @@ class Settings:
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "1000_patients_1000_samples_3_mutations_100000_jitter=0_prior_normal": Settings(n_mutations=3, n_patients=1000, p_offdiag=3/8**2),
+    "10000_patients_1000_samples_3_mutations_100000_jitter=0_prior_normal": Settings(n_mutations=3, n_patients=10000, p_offdiag=3/8**2),
 }
 
 rule all:

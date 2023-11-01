@@ -26,18 +26,18 @@ class Settings:
     n_mutations: int
     n_patients: int
     p_offdiag: float
-    mean_sampling_time: float = 450.0
+    mean_sampling_time: float = 0.5
     data_seed: int = 111
-    prior_sampling_seed: int = 100
+    prior_sampling_seed: int = 222
     tuning_samples: int = 100
-    mcmc_samples: int = 24
+    mcmc_samples: int = 100
 
     smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "100_patients_100_samples_4_mutations_100000_jitter=0_prior_normal": Settings(n_mutations=4, n_patients=100, p_offdiag=3/8**2),
+    "800_patients_100_samples_4_mutations_1_jitter=0_prior_normal": Settings(n_mutations=4, n_patients=800, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -114,17 +114,14 @@ rule generate_data:
         
         rng = np.random.default_rng(settings.data_seed)
 
-        theta = np.array(
-        [
-            [-1.41, 0.00, 0.00, 4.91, 1.03],
-            [-1.12, -2.26, 0.00, 0.82, 0.00],
-            [0.00, -0.86, -2.55, 1.58, 0.00],
-            [0.00, 0.00, 0.00, -3.69, 0.00],
-            [-3.08, -1.42, -3.14, 0.00, -3.95]
-            
-        ]
-    ) 
-        theta = theta*5
+        
+
+        theta = pmhn.sample_spike_and_slab(
+            rng,
+            n_mutations=settings.n_mutations,
+            p_offdiag=settings.p_offdiag,
+        )
+
         print(theta)
         sampling_times, trees_dict = simulate_trees(
             rng=rng,
