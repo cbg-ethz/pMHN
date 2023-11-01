@@ -136,6 +136,9 @@ def _simulate_tree(
                     ):
                         exit_while = True
                         break
+                # delete Node, since it is not needed
+                else:
+                    new_node.parent = None
             if exit_while:
                 break
         if exit_while:
