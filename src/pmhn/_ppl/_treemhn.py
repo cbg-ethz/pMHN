@@ -24,7 +24,6 @@ class TreeMHNLoglikelihood(Op):
         all_mut: set[int],
         backend: TreeMHNBackendCode,
     ) -> None:
-        print("constructor called!")
         self._data = data
         self._mean_sampling_time = mean_sampling_time
         self._all_mut = all_mut

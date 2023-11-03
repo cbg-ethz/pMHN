@@ -4,6 +4,7 @@ from pmhn._trees._backend_code import TreeMHNBackendCode, TreeWrapperCode
 import csv
 import numpy as np
 import time
+from anytree import RenderTree
 
 
 def csv_to_numpy(file_path):
@@ -56,6 +57,7 @@ theta_AML_size = len(theta_AML)
 all_mut_AML = set(range(1, theta_AML_size + 1))
 for idx, tree in trees_AML.items():
     print(f"Processing tree {idx} of {len(trees_AML)}")
+    print(RenderTree(tree))
     tree_log = TreeWrapperCode(tree)
     log_value = backend.loglikelihood(tree_log, theta_AML, sampling_rate, all_mut_AML)
     log_vec_py_AML[idx - 1] = log_value
@@ -64,6 +66,7 @@ theta_500_size = len(theta_500)
 all_mut_500 = set(range(1, theta_500_size + 1))
 for idx, tree in trees_500.items():
     print(f"Processing tree {idx} of {len(trees_500)}")
+    print(RenderTree(tree))
     tree_log = TreeWrapperCode(tree)
     log_value = backend.loglikelihood(tree_log, theta_500, sampling_rate, all_mut_500)
     log_vec_py_500[idx - 1] = log_value

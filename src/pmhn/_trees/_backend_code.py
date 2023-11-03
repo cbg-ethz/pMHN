@@ -191,5 +191,4 @@ class TreeMHNBackendCode:
             loglikelihoods.append(
                 self.loglikelihood(tree, theta, sampling_rate, all_mut)
             )
-
         return loglikelihoods

@@ -29,15 +29,15 @@ class Settings:
     mean_sampling_time: float = 1.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 100
-    mcmc_samples: int = 100
+    tuning_samples: int = 1000
+    mcmc_samples: int = 1000
 
     smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "1000_patients_100_samples_4_mutations_1.0_jitter=0": Settings(n_mutations=4, n_patients=1000, p_offdiag=3/8**2),
+    "100_patients_100_samples_4_mutations_1.0_jitter=0_v4": Settings(n_mutations=4, n_patients=100, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -122,7 +122,7 @@ rule generate_data:
            [3.00, -1.2, 2.1, -1.8]
         ]
     )   
-        theta = theta*1.7
+        theta = theta*2
         print(theta)
         sampling_times, trees_dict = simulate_trees(
             rng=rng,
@@ -130,6 +130,7 @@ rule generate_data:
             theta=theta,
             mean_sampling_time=settings.mean_sampling_time, min_tree_size = None,max_tree_size = None
         )
+        print("reached!")
         trees = []
         print(len(trees_dict))
         for i, tree in enumerate(trees_dict):
