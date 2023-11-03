@@ -166,3 +166,29 @@ class TreeMHNBackendCode:
                 x[i] -= val * x[index]
             x[i] /= V_diag
         return np.log(x[-1] + self._jitter) + np.log(sampling_rate)
+
+    def loglikelihood_tree_list(
+        self,
+        trees: list[TreeWrapperCode],
+        theta: np.ndarray,
+        sampling_rate: float,
+        all_mut: set[int],
+    ) -> list[float]:
+        """
+        Calculates the loglikelihood `log P(tree | theta)` for each tree in the list.
+
+        Args:
+            trees: a list of trees
+            theta: real-valued (i.e., log-theta) matrix,
+            shape (n_mutations, n_mutations)
+            sampling_rate: a scalar of type float
+            all_mut: a set containing all possible mutations
+        Returns:
+            a list of loglikelihoods, one for each tree
+        """
+        loglikelihoods = []
+        for i, tree in enumerate(trees):
+            loglikelihoods.append(
+                self.loglikelihood(tree, theta, sampling_rate, all_mut)
+            )
+        return loglikelihoods
