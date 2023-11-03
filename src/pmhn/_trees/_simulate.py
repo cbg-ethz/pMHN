@@ -10,7 +10,7 @@ def generate_valid_tree(
     mean_sampling_time: float,
     min_tree_size: Optional[int] = None,
     max_tree_size: Optional[int] = None,
-) -> tuple[dict[Node, float], float]:
+) -> tuple[Node, float]:
     """
     Generates a single valid tree with known sampling time.
 
@@ -34,8 +34,8 @@ def generate_valid_tree(
 
     while True:
         tree = _simulate_tree(rng, theta, sampling_time, max_tree_size)
-        if (min_tree_size is None or len(tree) >= min_tree_size) and (
-            max_tree_size is None or len(tree) <= max_tree_size
+        if (min_tree_size is None or len(tree.descendants) + 1 >= min_tree_size) and (
+            max_tree_size is None or len(tree.descendants) + 1 <= max_tree_size
         ):
             return tree, sampling_time
         else:
@@ -74,7 +74,7 @@ def _find_possible_mutations(old_mutations: list[int], n_mutations: int) -> list
 
 def _simulate_tree(
     rng, theta: np.ndarray, sampling_time: float, max_tree_size: Optional[int] = None
-) -> dict[Node, float]:
+) -> Node:
     """Simulates a single tree with known sampling time.
 
     Args:
@@ -145,7 +145,7 @@ def _simulate_tree(
             break
         U_current = U_next
 
-    return node_time_map
+    return root
 
 
 def simulate_trees(
@@ -155,7 +155,7 @@ def simulate_trees(
     mean_sampling_time: Union[np.ndarray, float, Sequence[float]],
     min_tree_size: Optional[int] = None,
     max_tree_size: Optional[int] = None,
-) -> tuple[np.ndarray, list[dict[Node, float]]]:
+) -> tuple[np.ndarray, list[Node]]:
     """Simulates a data set of trees with known sampling times.
 
     Args:

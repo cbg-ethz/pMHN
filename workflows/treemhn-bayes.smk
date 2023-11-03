@@ -12,7 +12,7 @@ import pmhn
 from  pmhn._trees._simulate import simulate_trees
 from pmhn._ppl._treemhn import TreeMHNLoglikelihood
 from pmhn._trees._backend_code import TreeMHNBackendCode, TreeWrapperCode 
-from anytree import RenderTree, Node
+from anytree import RenderTree, Node, LevelOrderGroupIter
 matplotlib.use("agg")
     
 # --- Working directory ---
@@ -37,7 +37,7 @@ class Settings:
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "1000_patients_100_samples_4_mutations_1.0_jitter=0": Settings(n_mutations=4, n_patients=1000, p_offdiag=3/8**2),
+    "100_patients_100_samples_5_mutations_1.0_jitter=0.5": Settings(n_mutations=5, n_patients=100, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -72,17 +72,18 @@ def write_trees_to_csv(trees, output_file_path):
         )
 
         patient_id = 0
-        for tree_dict in trees:
+        for tree in trees:
             patient_id += 1
             tree_id = patient_id
             node_id = 0
             node_id_dict= {}
-            for node, _ in tree_dict.items():
-                node_id += 1
-                node_id_dict[node]=node_id
-                mutation_id = node.name
-                parent_id = node_id_dict[node.parent] if node.parent else node_id
-                writer.writerow([patient_id, tree_id, node_id, mutation_id, parent_id])
+            for level in LevelOrderGroupIter(tree):
+                for node in level: 
+                    node_id += 1
+                    node_id_dict[node]=node_id
+                    mutation_id = node.name
+                    parent_id = node_id_dict[node.parent] if node.parent else node_id
+                    writer.writerow([patient_id, tree_id, node_id, mutation_id, parent_id])
 
 rule plot_trees_from_data:
     input:
@@ -92,7 +93,7 @@ rule plot_trees_from_data:
         trees_csv = "{scenario}/trees.csv"
     run:
 
-        trees = np.load(input.arrays, allow_pickle=True)["trees_dict"]
+        trees = np.load(input.arrays, allow_pickle=True)["trees"]
         write_trees_to_csv(trees, output.trees_csv)
         trees_from_csv = pd.read_csv(output.trees_csv)
 
@@ -116,31 +117,29 @@ rule generate_data:
 
         theta = np.array(
         [
-            [-1.41, 0.00, 0.00, -2.2],
-            [1.12, -1.41, 0.00, -2.2],
-            [0.00, 3.2, -1.8, 2.1],
-           [3.00, -1.2, 2.1, -1.8]
+            [-1.41, 0.00, 0.00, -4.91, -1.03],
+            [-6.0, -2.26, 0.00, -6.0, 0.00],
+            [0.00, -6.86, -2.55, -7.58, 0.00],
+            [0.00, 0.00, 0.00, -3.69, 0.00],
+            [-3.08, -1.42, -3.14, 0.00, -2.95],
+           
         ]
-    )   
-        theta = theta*1.7
-        print(theta)
-        sampling_times, trees_dict = simulate_trees(
+    ) 
+        np.fill_diagonal(theta, np.diag(theta)*0.5 )
+        print(theta) 
+        sampling_times, trees = simulate_trees(
             rng=rng,
             n_points=settings.n_patients,
             theta=theta,
             mean_sampling_time=settings.mean_sampling_time, min_tree_size = None,max_tree_size = None
         )
-        trees = []
-        print(len(trees_dict))
-        for i, tree in enumerate(trees_dict):
-            for key, val in tree.items():
-                print(RenderTree(key))
-                tree_wrapper =TreeWrapperCode(key) 
-                trees.append(tree_wrapper)
-                break 
+        trees_wrapper = []
+        for tree in trees:
+            tree_wrapper = TreeWrapperCode(tree)
+            trees_wrapper.append(tree_wrapper)
 
  
-        np.savez(output.arrays, trees_dict = trees_dict, trees=trees, theta=theta, sampling_times=sampling_times)
+        np.savez(output.arrays, trees = trees, trees_wrapper=trees_wrapper, theta=theta, sampling_times=sampling_times)
 
 def prepare_full_model(trees, mean_sampling_time, n_mutations, all_mut) -> pm.Model:
     loglikelihood = TreeMHNLoglikelihood(data=trees, mean_sampling_time = mean_sampling_time, all_mut = all_mut, backend=TreeMHNBackendCode())
@@ -193,7 +192,7 @@ rule mcmc_sample_one_chain:
         chain = int(wildcards.chain)
         settings = SCENARIOS[wildcards.scenario]
         with np.load(input.arrays, allow_pickle=True) as data:
-            trees = data["trees"]
+            trees = data["trees_wrapper"]
             theta = data["theta"]
         n_mutations = len(theta) 
         all_mut = set(i + 1 for i in range(n_mutations))
