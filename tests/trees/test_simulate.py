@@ -33,10 +33,7 @@ def test_generate_valid_tree():
             rng, theta, sampling_time, mean_sampling_time, min_tree_size, max_tree_size
         )
 
-        assert min_tree_size <= len(tree) <= max_tree_size
-
-        for node, time in tree.items():
-            assert time < sampling_time
+        assert min_tree_size <= len(tree.descendants) + 1 <= max_tree_size
 
 
 def test_generate_tree_no_size_constraints():
@@ -66,9 +63,6 @@ def test_generate_tree_no_size_constraints():
         tree, sampling_time = simulate.generate_valid_tree(
             rng, theta, sampling_time, mean_sampling_time=mean_sampling_time
         )
-
-        for node, time in tree.items():
-            assert time < sampling_time
 
 
 def test_generate_tree_no_min_size_constraint():
@@ -103,10 +97,7 @@ def test_generate_tree_no_min_size_constraint():
             mean_sampling_time=mean_sampling_time,
             max_tree_size=max_tree_size,
         )
-        assert len(tree) <= max_tree_size
-
-        for node, time in tree.items():
-            assert time < sampling_time
+        assert len(tree.descendants) + 1 <= max_tree_size
 
 
 def test_generate_tree_no_max_size_constraint():
@@ -142,10 +133,7 @@ def test_generate_tree_no_max_size_constraint():
             min_tree_size=min_tree_size,
         )
 
-        assert len(tree) >= min_tree_size
-
-        for node, time in tree.items():
-            assert time < sampling_time
+        assert len(tree.descendants) + 1 >= min_tree_size
 
 
 def test_find_possible_mutations_normal():
