@@ -29,15 +29,15 @@ class Settings:
     mean_sampling_time: float = 1.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 100
-    mcmc_samples: int = 100
+    tuning_samples: int = 24
+    mcmc_samples: int = 24
 
     smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "100_patients_100_samples_5_mutations_1.0_jitter=0.5": Settings(n_mutations=5, n_patients=100, p_offdiag=3/8**2),
+    "300_patients_24_samples_5_mutations_1.0_jitter=0_par_tryout": Settings(n_mutations=5, n_patients=300, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -110,6 +110,7 @@ rule plot_trees_from_data:
 rule generate_data:
     output: 
       arrays="{scenario}/arrays.npz"
+    
     run:
         settings = SCENARIOS[wildcards.scenario]
         
@@ -125,6 +126,7 @@ rule generate_data:
            
         ]
     ) 
+        
         np.fill_diagonal(theta, np.diag(theta)*0.5 )
         print(theta) 
         sampling_times, trees = simulate_trees(
@@ -135,6 +137,7 @@ rule generate_data:
         )
         trees_wrapper = []
         for tree in trees:
+            print(RenderTree(tree))
             tree_wrapper = TreeWrapperCode(tree)
             trees_wrapper.append(tree_wrapper)
 
@@ -188,6 +191,7 @@ rule mcmc_sample_one_chain:
         arrays="{scenario}/arrays.npz"
     output:
         chain="{scenario}/mcmc-chains/{chain}.nc"
+    threads: 8
     run:
         chain = int(wildcards.chain)
         settings = SCENARIOS[wildcards.scenario]

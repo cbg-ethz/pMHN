@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import pmhn._trees._simulate as _simulate
+from anytree import LevelOrderGroupIter
 
 
 def csv_to_numpy(file_path):
@@ -19,15 +20,20 @@ def write_trees_to_csv(trees, output_file_path):
         )
 
         patient_id = 0
-        for tree_dict in trees:
+        for tree in trees:
             patient_id += 1
             tree_id = patient_id
             node_id = 0
-            for node, _ in tree_dict.items():
-                node_id += 1
-                mutation_id = node.name
-                parent_id = node.parent.name if node.parent else node_id
-                writer.writerow([patient_id, tree_id, node_id, mutation_id, parent_id])
+            node_id_dict = {}
+            for level in LevelOrderGroupIter(tree):
+                for node in level:
+                    node_id += 1
+                    node_id_dict[node] = node_id
+                    mutation_id = node.name
+                    parent_id = node_id_dict[node.parent] if node.parent else node_id
+                    writer.writerow(
+                        [patient_id, tree_id, node_id, mutation_id, parent_id]
+                    )
 
 
 if __name__ == "__main__":

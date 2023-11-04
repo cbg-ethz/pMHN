@@ -1,8 +1,9 @@
 from typing import Optional
-
+from typing import cast
 import numpy as np
 from pmhn._trees._tree_utils_geno import create_mappings
 from anytree import Node
+from joblib import Parallel, delayed
 
 
 class TreeWrapperCode:
@@ -186,9 +187,11 @@ class TreeMHNBackendCode:
         Returns:
             a list of loglikelihoods, one for each tree
         """
-        loglikelihoods = []
-        for i, tree in enumerate(trees):
-            loglikelihoods.append(
-                self.loglikelihood(tree, theta, sampling_rate, all_mut)
-            )
+        loglikelihoods = cast(
+            list[float],
+            Parallel(n_jobs=-1)(
+                delayed(self.loglikelihood)(tree, theta, sampling_rate, all_mut)
+                for tree in trees
+            ),
+        )
         return loglikelihoods
