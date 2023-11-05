@@ -37,7 +37,7 @@ class Settings:
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "100_patients_24_samples_5_mutations_1.0_jitter=0_0.125": Settings(n_mutations=5, n_patients=100, p_offdiag=3/8**2),
+    "200_patients_24_samples_5_mutations_1.0_jitter=0_0.25": Settings(n_mutations=5, n_patients=200, p_offdiag=3/8**2),
 }
 
 rule all:
@@ -45,12 +45,11 @@ rule all:
         theta_matrices = expand("{scenario}/theta.pdf", scenario=SCENARIOS.keys()),
         theta_csv = expand("{scenario}/theta.csv", scenario=SCENARIOS.keys()),
         trees = expand("{scenario}/trees.pdf", scenario=SCENARIOS.keys()),
-        sampling_times = expand("{scenario}/sampling_times.pdf", scenario=SCENARIOS.keys()),
         mcmc_samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys()),
         theta_samples = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
         posterior_theta_plots=expand("{scenario}/posterior_theta_from_mcmc.pdf", scenario=SCENARIOS.keys()),
         trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
-        histogram_plot=expand("{scenario}/posterior/all_histograms_theta.pdf", scenario=SCENARIOS.keys()),
+        posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
         summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
         
 rule plot_theta_from_data:
@@ -67,24 +66,6 @@ rule plot_theta_from_data:
         fig.tight_layout()
         fig.savefig(output.theta)
         pd.DataFrame(theta).to_csv(output.theta_csv, index=False)
-rule plot_sampling_times_from_data:
-    input:
-        arrays="{scenario}/arrays.npz"
-    output:
-        sampling_times = "{scenario}/sampling_times.pdf",
-    run:
-        sampling_times = np.load(input.arrays)["sampling_times"]
-        
-        fig, ax = plt.subplots()
-        ax.plot(range(len(sampling_times)), sampling_times, marker='o')
-        
-        ax.set_xlabel('Tree Index')
-        ax.set_ylabel('Sampling Time')
-        ax.set_title('Sampling Times for Each Tree')
-        
-        fig.tight_layout()
-        
-        fig.savefig(output.sampling_times)
 
 def write_trees_to_csv(trees, output_file_path):
     with open(output_file_path, "w", newline="") as file:
@@ -149,7 +130,7 @@ rule generate_data:
         ]
     ) 
         theta = theta * 4
-        np.fill_diagonal(theta, np.diag(theta)*0.125 )
+        np.fill_diagonal(theta, np.diag(theta)*0.25 )
         print(theta) 
         sampling_times, trees = simulate_trees(
             rng=rng,
@@ -252,47 +233,27 @@ rule plot_posterior_thetas_from_mcmc:
 
 rule mcmc_plots_and_summary:
     input:
-        samples=lambda wildcards: expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys()),
-        arrays=lambda wildcards: expand("{scenario}/arrays.npz", scenario=SCENARIOS.keys())
+        samples=lambda wildcards: expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
     output:
-        trace_plot=expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
-        histogram_plot=expand("{scenario}/posterior/all_histograms_theta.pdf", scenario=SCENARIOS.keys()),
-        summary=expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
+        trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
     run:
+        
         for scenario in SCENARIOS.keys():
-            idata = az.from_netcdf(f"{scenario}/mcmc-samples.nc")
-            theta_matrix = np.load(f"{scenario}/arrays.npz")['theta']
-
             
+            idata = az.from_netcdf(f"{scenario}/mcmc-samples.nc")
+            
+ 
             az.plot_trace(idata, var_names=['theta'])
             plt.savefig(f"{scenario}/posterior/trace_plot_theta.pdf")
             plt.close()
 
-            nrows, ncols = theta_matrix.shape
-            figsize = (nrows, nrows * 2)  
-            fig, axs = plt.subplots(nrows, ncols, figsize=figsize, squeeze=False)
-            axs = axs.flatten()  
-
-            for i in range(nrows):
-                for j in range(ncols):
-                    ax = axs[i * ncols + j]
-                    theta_samples = idata.posterior['theta'].values[0, :, i, j]
-                    true_theta = theta_matrix[i, j]
-                    
-                    ax.hist(theta_samples, bins=30, color='skyblue', edgecolor='black')
-                    ax.axvline(true_theta, color='orange', linestyle='--', label=f'True θ[{i},{j}] = {true_theta:.2f}')
-                    ax.legend()
-                    
-                    ax.set_title(f'Entry ({i},{j})')
-                    ax.set_xlabel('θ values')
-                    ax.set_ylabel('Frequency')
-
-            plt.tight_layout()  
-            plt.savefig(f"{scenario}/posterior/all_histograms_theta.pdf")
+            az.plot_posterior(idata, var_names=['theta'], kind='kde')
+            plt.savefig(f"{scenario}/posterior/posterior_plot_theta.pdf")
             plt.close()
+
+
             
             summary = az.summary(idata, var_names=['theta'])
             summary.to_csv(f"{scenario}/posterior/mcmc_summary_theta.txt", sep='\t')
-
-
-
