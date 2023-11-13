@@ -12,6 +12,7 @@ import pmhn._ppl._priors as priors
         priors.prior_regularized_horseshoe,
         priors.prior_offdiagonal_laplace,
         priors.prior_horseshoe,
+        priors.prior_spike_and_slab_marginalized,
     ],
 )
 def test_basic_prior_test(model_factory, n_mutations: int = 5) -> None:

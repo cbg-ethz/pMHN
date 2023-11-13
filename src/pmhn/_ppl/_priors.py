@@ -5,6 +5,10 @@ from typing import Optional
 import pymc as pm
 import pytensor.tensor as pt
 
+# Names of the variables in the PyMC model
+_BASELINE_RATES: str = "baseline_rates"
+_THETA: str = "theta"
+
 
 def construct_square_matrix(
     n: int, diagonal: pt.TensorLike, offdiag: pt.TensorLike
@@ -48,13 +52,13 @@ def prior_only_baseline_rates(
 
     with pm.Model() as model:  # type: ignore
         baselines = pm.Normal(
-            "baseline_rates",
+            _BASELINE_RATES,
             mu=mean,
             sigma=sigma,
             size=(n_mutations,),
         )
         mask = pt.eye(n_mutations)
-        pm.Deterministic("theta", mask * baselines)  # type: ignore
+        pm.Deterministic(_THETA, mask * baselines)  # type: ignore
     return model
 
 
@@ -86,12 +90,12 @@ def prior_normal(
         sigma_offdiag = sigma
 
     with pm.Model() as model:  # type: ignore
-        diag = pm.Normal("_diag", mean, sigma, shape=n_mutations)
+        diag = pm.Normal(_BASELINE_RATES, mean, sigma, shape=n_mutations)
         offdiag = pm.Normal(
             "_offdiag", mean_offdiag, sigma_offdiag, shape=_offdiag_size(n_mutations)
         )
         pm.Deterministic(
-            "theta",
+            _THETA,
             construct_square_matrix(n_mutations, diagonal=diag, offdiag=offdiag),
         )
     return model
@@ -128,11 +132,13 @@ def prior_horseshoe(
         offdiag = z * tau_var * lambdas
 
         # Construct diagonal terms explicitly
-        diag = pm.Normal("diag", baselines_mean, baselines_sigma, shape=n_mutations)
+        diag = pm.Normal(
+            _BASELINE_RATES, baselines_mean, baselines_sigma, shape=n_mutations
+        )
 
         # Construct the theta matrix
         pm.Deterministic(
-            "theta",
+            _THETA,
             construct_square_matrix(n_mutations, diagonal=diag, offdiag=offdiag),
         )
 
@@ -200,7 +206,7 @@ def prior_regularized_horseshoe(
 
         # Now sample baseline rates
         baselines = pm.Normal(
-            "baseline_rates",
+            _BASELINE_RATES,
             mu=baselines_mean,
             sigma=baselines_sigma,
             size=(n_mutations,),
@@ -209,7 +215,7 @@ def prior_regularized_horseshoe(
         # We need to construct the theta matrix out of `betas` and `baselines`
         # Note that we will effectively drop the diagonal of `betas`
         mask = pt.eye(n_mutations)
-        pm.Deterministic("theta", mask * baselines + betas * (1 - mask))  # type: ignore
+        pm.Deterministic(_THETA, mask * baselines + betas * (1 - mask))  # type: ignore
 
     return model
 
@@ -255,21 +261,74 @@ def prior_offdiagonal_laplace(
 
     with pm.Model() as model:  # type: ignore
         baselines = pm.Normal(
-            "baseline_rates",
+            _BASELINE_RATES,
             mu=baselines_mean,
             sigma=baselines_sigma,
             size=(n_mutations,),
         )
         laplaces = pm.Laplace(
-            "laplace", mu=0.0, b=scale, shape=(n_mutations, n_mutations)
+            "laplace", mu=0.0, b=scale, shape=_offdiag_size(n_mutations)
+        )
+        pm.Deterministic(
+            _THETA,
+            construct_square_matrix(n_mutations, diagonal=baselines, offdiag=laplaces),
         )
 
-        # We need to construct the theta matrix out of `laplaces` and `baselines`
-        # Note that we will effectively drop the diagonal of `laplaces`
-        mask = pt.eye(n_mutations)
+    return model
+
+
+def prior_spike_and_slab_marginalized(
+    n_mutations: int,
+    baselines_mean: float = 0.0,
+    baselines_sigma: float = 10.0,
+    sparsity_a: float = 3.0,
+    sparsity_b: float = 1.0,
+    spike_scale: float = 0.1,
+    slab_scale: float = 10.0,
+) -> pm.Model:
+    """Construct a spike-and-slab mixture prior for the off-diagonal entries.
+
+    See the spike-and-slab mixture prior in this
+    [post](https://betanalpha.github.io/assets/case_studies/modeling_sparsity.html#221_Discrete_Mixture_Models).
+
+    Args:
+        n_mutations: number of mutations
+        baselines_mean: mean of the normal prior on the baseline rates
+        baselines_sigma: standard deviation of the normal prior on the baseline rates
+        sparsity_a: shape parameter of the Beta distribution controling sparsity
+        sparsity_b: shape parameter of the Beta distribution controling sparsity
+
+    Note:
+        By default we set `sparsity` prior Beta(3, 1) for
+        $\\mathbb E[\\gamma] \\approx 0.75$
+        which should result in 75% of the off-diagonal entries being close to zero.
+    """
+    with pm.Model() as model:
+        gamma = pm.Beta("sparsity", sparsity_a, sparsity_b)
+        offdiag_sigmas = pm.HalfNormal(
+            "offdiag_sigmas", pt.as_tensor([spike_scale, slab_scale])
+        )
+        offdiag_entries = pm.NormalMixture(
+            "offdiag_entries",
+            mu=0,
+            w=pt.stack([gamma, 1.0 - gamma]),
+            sigma=offdiag_sigmas,
+            shape=_offdiag_size(n_mutations),
+        )
+
+        # Now sample baseline rates
+        baselines = pm.Normal(
+            _BASELINE_RATES,
+            mu=baselines_mean,
+            sigma=baselines_sigma,
+            size=(n_mutations,),
+        )
+
         pm.Deterministic(
-            "theta",
-            mask * baselines + laplaces * (1 - mask),  # type: ignore
+            _THETA,
+            construct_square_matrix(
+                n_mutations, diagonal=baselines, offdiag=offdiag_entries
+            ),
         )
 
     return model
