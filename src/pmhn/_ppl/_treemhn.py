@@ -44,7 +44,7 @@ class TreeMHNLoglikelihood(Op):
             sampling_rate=1.0 / self._mean_sampling_time,
             all_mut=self._all_mut,
         )
-        total_loglikelihood = np.sum(loglikelihoods)
+        total_loglikelihood = np.sum(loglikelihoods)  # type: ignore
         outputs[0][0] = np.array(
             total_loglikelihood
         )  # Wrap the log-likelihood into output
