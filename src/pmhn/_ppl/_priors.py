@@ -27,9 +27,15 @@ def construct_square_matrix(
     mat = pt.set_subtensor(mat[off_diag_indices], offdiag)  # type: ignore
 
     # Set the diagonal elements
-    mat = pt.fill_diagonal(mat, diagonal)
+    diag_indices = pt.arange(n), pt.arange(n)
+    mat = pt.set_subtensor(mat[diag_indices], diagonal)  # type: ignore
 
     return mat
+
+
+def _offdiag_size(n: int) -> int:
+    """Returns the number of off-diagonal elements in a square matrix of size n."""
+    return n * (n - 1)
 
 
 def prior_only_baseline_rates(
@@ -76,7 +82,10 @@ def prior_horseshoe(
     baselines_sigma: float = 10.0,
     tau: Optional[float] = None,
 ) -> pm.Model:
-    """Constructs PyMC model with horseshoe prior.
+    """Constructs PyMC model with horseshoe prior on the off-diagonal terms.
+
+    For full description of this prior, see
+    C.M. Caralho et al., _Handling Sparsity via the Horseshoe_, AISTATS 2009.
 
     Args:
         n_mutations: number of mutations
@@ -89,7 +98,24 @@ def prior_horseshoe(
            access the (log-)mutual hazard network variable,
            which has shape (n_mutations, n_mutations)
     """
-    raise NotImplementedError("Horseshoe prior is not implemented yet")
+    with pm.Model() as model:  # type: ignore
+        tau_var = pm.HalfCauchy("tau", 1, observed=tau)
+        lambdas = pm.HalfCauchy("lambdas", 1, shape=_offdiag_size(n_mutations))
+
+        # Reparametrization trick for efficiency
+        z = pm.Normal("_latent", 0.0, 1.0, shape=_offdiag_size(n_mutations))
+        offdiag = z * tau_var * lambdas
+
+        # Construct diagonal terms explicitly
+        diag = pm.Normal("diag", baselines_mean, baselines_sigma, shape=n_mutations)
+
+        # Construct the theta matrix
+        pm.Deterministic(
+            "theta",
+            construct_square_matrix(n_mutations, diagonal=diag, offdiag=offdiag),
+        )
+
+    return model
 
 
 def prior_regularized_horseshoe(
