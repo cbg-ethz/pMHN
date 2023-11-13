@@ -62,17 +62,38 @@ def prior_normal(
     n_mutations: int,
     mean: float = 0.0,
     sigma: float = 10.0,
+    mean_offdiag: Optional[float] = None,
+    sigma_offdiag: Optional[float] = None,
 ) -> pm.Model:
     """Constructs PyMC model in which each entry is sampled
     from multivariate normal distribution.
+
+    Args:
+        mean: prior mean of the diagonal entries
+        sigma: prior standard deviation of the diagonal entries
+        mean_offdiag: prior mean of the off-diagonal entries, defaults to `mean`
+        sigma_offdiag: prior standard deviation of the off-diagonal entries,
+            defaults to `sigma`
 
     Note:
         This model is unlikely to result in sparse solutions
         and for very weak priors (e.g., very large sigma) the solution
         may be very multimodal.
     """
+    if mean_offdiag is None:
+        mean_offdiag = mean
+    if sigma_offdiag is None:
+        sigma_offdiag = sigma
+
     with pm.Model() as model:  # type: ignore
-        pm.Normal("theta", mean, sigma, shape=(n_mutations, n_mutations))
+        diag = pm.Normal("_diag", mean, sigma, shape=n_mutations)
+        offdiag = pm.Normal(
+            "_offdiag", mean_offdiag, sigma_offdiag, shape=_offdiag_size(n_mutations)
+        )
+        pm.Deterministic(
+            "theta",
+            construct_square_matrix(n_mutations, diagonal=diag, offdiag=offdiag),
+        )
     return model
 
 
