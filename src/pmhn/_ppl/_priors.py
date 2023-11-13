@@ -6,6 +6,32 @@ import pymc as pm
 import pytensor.tensor as pt
 
 
+def construct_square_matrix(
+    n: int, diagonal: pt.TensorLike, offdiag: pt.TensorLike
+) -> pt.TensorLike:
+    """Constructs a square matrix from the diagonal and off-diagonal elements.
+
+    Args:
+        n: size of the matrix
+        diagonal: vector of shape (n,) containing the diagonal elements
+        offdiag: vector of shape (n*(n-1),) containing the off-diagonal elements
+
+    Returns:
+        matrix of shape (n, n)
+    """
+    # Create a square matrix of size n filled with zeros
+    mat = pt.zeros((n, n))
+
+    # Set the off-diagonal elements
+    off_diag_indices = pt.nonzero(~pt.eye(n, dtype="bool"))  # type: ignore
+    mat = pt.set_subtensor(mat[off_diag_indices], offdiag)  # type: ignore
+
+    # Set the diagonal elements
+    mat = pt.fill_diagonal(mat, diagonal)
+
+    return mat
+
+
 def prior_only_baseline_rates(
     n_mutations: int,
     mean: float = 0.0,
@@ -42,6 +68,28 @@ def prior_normal(
     with pm.Model() as model:  # type: ignore
         pm.Normal("theta", mean, sigma, shape=(n_mutations, n_mutations))
     return model
+
+
+def prior_horseshoe(
+    n_mutations: int,
+    baselines_mean: float = 0,
+    baselines_sigma: float = 10.0,
+    tau: Optional[float] = None,
+) -> pm.Model:
+    """Constructs PyMC model with horseshoe prior.
+
+    Args:
+        n_mutations: number of mutations
+        baselines_mean: prior mean of the baseline rates
+        baselines_sigma: prior standard deviation of the baseline rates
+
+
+    Returns:
+        PyMC model. Use `model.theta` to
+           access the (log-)mutual hazard network variable,
+           which has shape (n_mutations, n_mutations)
+    """
+    raise NotImplementedError("Horseshoe prior is not implemented yet")
 
 
 def prior_regularized_horseshoe(
@@ -86,7 +134,9 @@ def prior_regularized_horseshoe(
     # Below we ignore the type of some variables because Pyright
     # is not fully compatible with PyMC type annotations.
     with pm.Model() as model:  # type: ignore
-        tau = pm.HalfStudentT("tau", 2, sparsity_sigma, observed=tau)  # type: ignore
+        tau_var = pm.HalfStudentT(
+            "tau", 2, sparsity_sigma, observed=tau
+        )  # type: ignore
         lambdas = pm.HalfStudentT(
             "lambdas_raw", lambdas_dof, shape=(n_mutations, n_mutations)
         )
@@ -94,12 +144,12 @@ def prior_regularized_horseshoe(
 
         lambdas_ = pm.Deterministic(
             "lambdas_tilde",
-            lambdas * pt.sqrt(c2 / (c2 + tau**2 * lambdas**2)),  # type: ignore
+            lambdas * pt.sqrt(c2 / (c2 + tau_var**2 * lambdas**2)),  # type: ignore
         )
 
         # Reparametrization trick for efficiency
         z = pm.Normal("z", 0.0, 1.0, shape=(n_mutations, n_mutations))
-        betas = pm.Deterministic("betas", z * tau * lambdas_)
+        betas = pm.Deterministic("betas", z * tau_var * lambdas_)
 
         # Now sample baseline rates
         baselines = pm.Normal(
