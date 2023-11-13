@@ -14,9 +14,11 @@
 ::: pmhn.PersonalisedMHNLoglikelihood
 
 ## Priors
+::: pmhn.prior_horseshoe
 ::: pmhn.prior_regularized_horseshoe
 ::: pmhn.prior_normal
 ::: pmhn.prior_only_baseline_rates
+::: pmhn.prior_spike_and_slab_marginalized
 
 ## Visualisations
 ### Mutual Hazard Network matrices

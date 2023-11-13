@@ -169,10 +169,12 @@ def prior_regularized_horseshoe(
            which has shape (n_mutations, n_mutations)
 
     Example:
-        >>> model = prior_regularized_horseshoe(n_mutations=10)
-        >>> with model:
-        >>>     theta = model.theta
-        >>>     pm.Potential("potential", some_function_of(theta))
+        ```python
+        model = prior_regularized_horseshoe(n_mutations=10)
+        with model:
+            theta = model.theta
+            pm.Potential("potential", some_function_of(theta))
+        ```
     """
     if sparsity_sigma <= 0:
         raise ValueError("sparsity_sigma must be positive")
@@ -298,8 +300,8 @@ def prior_spike_and_slab_marginalized(
 
     Note:
         By default we set `sparsity` prior Beta(3, 1) for
-        $\\mathbb E[\\gamma] \\approx 0.75$
-        which should result in 75% of the off-diagonal entries being close to zero.
+        $E[\\gamma] \\approx 0.75$, which
+        should result in 75% of the off-diagonal entries being close to zero.
     """
     with pm.Model() as model:
         gamma = pm.Beta("sparsity", sparsity_a, sparsity_b)
