@@ -29,15 +29,15 @@ class Settings:
     mean_sampling_time: float = 1.0
     data_seed: int = 111
     prior_sampling_seed: int = 222
-    tuning_samples: int = 24
-    mcmc_samples: int = 24
+    tuning_samples: int = 100
+    mcmc_samples: int = 100
 
     smc_particles: int = 24
 
 
 SCENARIOS = {
     #"small_treemhn_spike_and_slab_0.05_mcmc_normal": Settings(n_mutations=10, n_patients=200, p_offdiag=3/8**2),
-    "100_patients_24_samples_5_mutations_1.0_jitter=0_0.125": Settings(n_mutations=5, n_patients=100, p_offdiag=3/8**2),
+    "2000_patients_100_samples_3_mutations_normal_10.0=None": Settings(n_mutations=3, n_patients=2000, p_offdiag=3/8**2), 
 }
 
 rule all:
@@ -47,12 +47,46 @@ rule all:
         trees = expand("{scenario}/trees.pdf", scenario=SCENARIOS.keys()),
         sampling_times = expand("{scenario}/sampling_times.pdf", scenario=SCENARIOS.keys()),
         mcmc_samples = expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys()),
+        trees_prior = expand("{scenario}/prior/prior_trees.pdf", scenario=SCENARIOS.keys()),
         theta_samples = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
         posterior_theta_plots=expand("{scenario}/posterior_theta_from_mcmc.pdf", scenario=SCENARIOS.keys()),
         trace_plot= expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
         histogram_plot=expand("{scenario}/posterior/all_histograms_theta.pdf", scenario=SCENARIOS.keys()),
-        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
-        
+        summary= expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys()),
+        stats=expand("{scenario}/posterior/stats.pdf", scenario=SCENARIOS.keys()),
+        posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
+        mean_theta_posterior_csv = expand("{scenario}/mean_posterior_theta.csv", scenario=SCENARIOS.keys()),
+        mean_theta_posterior_pdf = expand("{scenario}/mean_posterior_theta.pdf", scenario=SCENARIOS.keys())
+rule generate_trees_from_mean_prior_samples:
+    input: 
+        prior_samples="{scenario}/prior/samples.nc"
+    output: 
+        trees_csv = "{scenario}/prior/prior_trees.csv",
+        trees_prior = "{scenario}/prior/prior_trees.pdf"
+
+    run:
+        settings = SCENARIOS[wildcards.scenario]
+        rng = np.random.default_rng(settings.data_seed)
+        idata = az.from_netcdf(str(input))
+        samples = idata.prior["theta"][0].values
+        print(samples.shape) 
+        mean_theta = np.mean(samples, axis=0)
+        _, trees = simulate_trees(
+            rng=rng,
+            n_points=settings.n_patients,
+            theta=mean_theta,
+            mean_sampling_time=settings.mean_sampling_time, min_tree_size = None,max_tree_size = 25
+        )
+        write_trees_to_csv(trees, output.trees_csv)
+        trees_from_csv = pd.read_csv(output.trees_csv)
+
+        tree_sizes = trees_from_csv.groupby("Tree_ID").size()
+        plt.hist(tree_sizes, alpha=0.5, edgecolor="k", label="Trees")
+        plt.xlabel("Tree Size")
+        plt.ylabel("Frequency")
+        plt.legend(loc="upper right")
+        plt.title("Tree Size Distribution")
+        plt.savefig(output.trees_prior) 
 rule plot_theta_from_data:
     input:
         arrays="{scenario}/arrays.npz"
@@ -114,18 +148,21 @@ rule plot_trees_from_data:
         trees = "{scenario}/trees.pdf",
         trees_csv = "{scenario}/trees.csv"
     run:
+        
 
         trees = np.load(input.arrays, allow_pickle=True)["trees"]
         write_trees_to_csv(trees, output.trees_csv)
         trees_from_csv = pd.read_csv(output.trees_csv)
+        tree_sizes = trees_from_csv.groupby("Tree_ID").size().astype(int)
 
-        tree_sizes = trees_from_csv.groupby("Tree_ID").size()
-        plt.hist(tree_sizes, alpha=0.5, edgecolor="k", label="Trees")
+        plt.hist(tree_sizes, bins=range(tree_sizes.min(), tree_sizes.max() + 1), alpha=0.5, edgecolor="k", label="Trees")
         plt.xlabel("Tree Size")
         plt.ylabel("Frequency")
         plt.legend(loc="upper right")
         plt.title("Tree Size Distribution")
+        
         plt.savefig(output.trees)
+
 
 
 
@@ -138,18 +175,17 @@ rule generate_data:
         
         rng = np.random.default_rng(settings.data_seed)
 
+        
         theta = np.array(
         [
-            [-1.41, 0.00, 0.00, -4.91, -1.03],
-            [-6.0, -2.26, 0.00, -6.0, 0.00],
-            [0.00, -6.86, -2.55, -7.58, 0.00],
-            [-5.0, -5.00, -2.00, -3.69, -5.00],
-            [-3.08, -1.42, -3.14, 0.00, -2.95],
-           
+[-0.282,0.0,0.0],
+[-6.0,-0.45199999999999996,0.0],
+[0.0,-6.86,-0.51]
+
         ]
     ) 
-        theta = theta * 4
-        np.fill_diagonal(theta, np.diag(theta)*0.125 )
+
+        np.fill_diagonal(theta, np.diag(theta)*1.25)
         print(theta) 
         sampling_times, trees = simulate_trees(
             rng=rng,
@@ -168,7 +204,7 @@ rule generate_data:
 
 def prepare_full_model(trees, mean_sampling_time, n_mutations, all_mut) -> pm.Model:
     loglikelihood = TreeMHNLoglikelihood(data=trees, mean_sampling_time = mean_sampling_time, all_mut = all_mut, backend=TreeMHNBackendCode())
-    model = pmhn.prior_regularized_horseshoe(n_mutations=n_mutations)
+    model = pmhn.prior_normal(n_mutations=n_mutations, sigma=10.0)
 
     with model:
         pm.Potential("loglikelihood", loglikelihood(model.theta))
@@ -184,7 +220,7 @@ rule sample_prior:
         rng = np.random.default_rng(settings.prior_sampling_seed)
         n_samples: int = 300
 
-        model = pmhn.prior_regularized_horseshoe(n_mutations=settings.n_mutations)
+        model = pmhn.prior_normal(n_mutations=settings.n_mutations, sigma=10.0)
         with model:
             idata = pm.sample_prior_predictive(samples=n_samples, random_seed=rng)
         idata.to_netcdf(output.prior_samples)
@@ -226,7 +262,20 @@ rule mcmc_sample_one_chain:
         with model:
             idata = pm.sample(chains=1, random_seed=chain, tune=settings.tuning_samples, draws=settings.mcmc_samples
             )        
+        print(idata.sample_stats)
         idata.to_netcdf(output.chain) 
+rule sampler_stats:
+    input:
+        samples=lambda wildcards: expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
+    output:
+        stats=expand("{scenario}/posterior/stats.pdf", scenario=SCENARIOS.keys())
+    run:
+        idata = az.from_netcdf(str(input))
+        print(idata.sample_stats['accepted'].values)
+        print(idata.sample_stats['accept'].values)
+        az.plot_posterior(idata, group="sample_stats", var_names="accept", hdi_prob="hide", kind="hist")
+        plt.savefig(str(output))
+        plt.close()
 
 rule mcmc_assemble_chains:
     input:
@@ -242,13 +291,26 @@ rule plot_posterior_thetas_from_mcmc:
     input:
         mcmc_samples=expand("{scenario}/mcmc-samples.nc", scenario=SCENARIOS.keys())
     output:
-        posterior_theta_plots=expand("{scenario}/posterior_theta_from_mcmc.pdf", scenario=SCENARIOS.keys())
+        posterior_theta_plots="{scenario}/posterior_theta_from_mcmc.pdf",
+        mean_theta_posterior_csv = "{scenario}/mean_posterior_theta.csv",
+        mean_theta_posterior_pdf = "{scenario}/mean_posterior_theta.pdf"
     run:
         idata = az.from_netcdf(str(input))
         posterior_samples = idata.posterior["theta"][0].values
-
+        theta_size = len(posterior_samples[0][0]) 
+        mean_theta = np.zeros((theta_size, theta_size))
+        for i in range(len(posterior_samples)):
+            mean_theta += posterior_samples[i]
+        mean_theta /= len(posterior_samples)
+        
+        pd.DataFrame(mean_theta).to_csv(output.mean_theta_posterior_csv, index=False)
         fig, _ = pmhn.plot_theta_samples(posterior_samples, width=6, height=4)
-        fig.savefig(str(output))
+        fig.savefig(output.posterior_theta_plots)
+
+        fig, ax = plt.subplots()
+        pmhn.plot_theta(mean_theta, ax=ax)
+        fig.tight_layout()
+        fig.savefig(output.mean_theta_posterior_pdf)
 
 rule mcmc_plots_and_summary:
     input:
@@ -257,11 +319,13 @@ rule mcmc_plots_and_summary:
     output:
         trace_plot=expand("{scenario}/posterior/trace_plot_theta.pdf", scenario=SCENARIOS.keys()),
         histogram_plot=expand("{scenario}/posterior/all_histograms_theta.pdf", scenario=SCENARIOS.keys()),
+        posterior_plot= expand("{scenario}/posterior/posterior_plot_theta.pdf", scenario=SCENARIOS.keys()),
         summary=expand("{scenario}/posterior/mcmc_summary_theta.txt", scenario=SCENARIOS.keys())
     run:
         for scenario in SCENARIOS.keys():
             idata = az.from_netcdf(f"{scenario}/mcmc-samples.nc")
             theta_matrix = np.load(f"{scenario}/arrays.npz")['theta']
+            
 
             
             az.plot_trace(idata, var_names=['theta'])
@@ -293,6 +357,11 @@ rule mcmc_plots_and_summary:
             
             summary = az.summary(idata, var_names=['theta'])
             summary.to_csv(f"{scenario}/posterior/mcmc_summary_theta.txt", sep='\t')
+
+            az.plot_posterior(idata, var_names=['theta'], kind='kde')
+            plt.savefig(f"{scenario}/posterior/posterior_plot_theta.pdf")
+            plt.close()
+
 
 
 
