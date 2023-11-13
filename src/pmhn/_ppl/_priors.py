@@ -306,7 +306,7 @@ def prior_spike_and_slab_marginalized(
     with pm.Model() as model:
         gamma = pm.Beta("sparsity", sparsity_a, sparsity_b)
         offdiag_sigmas = pm.HalfNormal(
-            "offdiag_sigmas", pt.stack([spike_scale, slab_scale])  # type: ignore
+            "offdiag_sigmas", pt.stack([spike_scale, slab_scale])  # pyright: ignore
         )
         offdiag_entries = pm.NormalMixture(
             "offdiag_entries",
