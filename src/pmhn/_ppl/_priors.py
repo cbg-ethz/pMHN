@@ -189,7 +189,7 @@ def prior_regularized_horseshoe(
             "tau", 2, sparsity_sigma, observed=tau
         )  # type: ignore
         lambdas = pm.HalfStudentT(
-            "lambdas_raw", lambdas_dof, shape=(n_mutations, n_mutations)
+            "lambdas_raw", lambdas_dof, shape=_offdiag_size(n_mutations)
         )
         c2 = pm.InverseGamma("c2", 1, 1, observed=c2)  # type: ignore
 
@@ -199,7 +199,7 @@ def prior_regularized_horseshoe(
         )
 
         # Reparametrization trick for efficiency
-        z = pm.Normal("z", 0.0, 1.0, shape=(n_mutations, n_mutations))
+        z = pm.Normal("z", 0.0, 1.0, shape=_offdiag_size(n_mutations))
         betas = pm.Deterministic("betas", z * tau_var * lambdas_)
 
         # Now sample baseline rates
@@ -209,11 +209,11 @@ def prior_regularized_horseshoe(
             sigma=baselines_sigma,
             size=(n_mutations,),
         )
-
-        # We need to construct the theta matrix out of `betas` and `baselines`
-        # Note that we will effectively drop the diagonal of `betas`
-        mask = pt.eye(n_mutations)
-        pm.Deterministic(_THETA, mask * baselines + betas * (1 - mask))  # type: ignore
+        # Construct the theta matrix
+        pm.Deterministic(
+            _THETA,
+            construct_square_matrix(n_mutations, diagonal=baselines, offdiag=betas),
+        )
 
     return model
 
