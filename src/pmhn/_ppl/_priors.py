@@ -10,9 +10,7 @@ _BASELINE_RATES: str = "baseline_rates"
 _THETA: str = "theta"
 
 
-def construct_square_matrix(
-    n: int, diagonal: pt.TensorLike, offdiag: pt.TensorLike
-) -> pt.TensorLike:
+def construct_square_matrix(n: int, diagonal, offdiag):
     """Constructs a square matrix from the diagonal and off-diagonal elements.
 
     Args:
