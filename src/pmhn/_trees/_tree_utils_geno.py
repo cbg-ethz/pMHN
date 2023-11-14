@@ -132,8 +132,10 @@ def create_index_subclone_maps(
     index = 0
     for level in LevelOrderGroupIter(root):
         for node in level:
-            index_subclone_map[index] = get_lineage(node)
-            subclone_index_map[get_lineage(node)] = index
+            lineage = get_lineage(node)
+
+            index_subclone_map[index] = lineage
+            subclone_index_map[lineage] = index
             index += 1
     return index_subclone_map, subclone_index_map
 
@@ -165,7 +167,10 @@ def create_genotype(
 def create_mappings(
     root: Node,
 ) -> tuple[
-    dict[tuple[tuple[Node, int], ...], tuple[int, int]], dict[int, tuple[int, ...]]
+    dict[tuple[tuple[Node, int], ...], int],
+    dict[tuple[int, ...], int],
+    dict[int, tuple[int, ...]],
+    dict[tuple[int, ...], int],
 ]:
     """
     Creates the required mappings to calculate the likelihood of a tree.
@@ -179,12 +184,19 @@ def create_mappings(
     """
     index_subclone_map, subclone_index_map = create_index_subclone_maps(root)
     genotype_subtree_map = {}
+    genotype_list_subtree_map = {}
     subtrees = get_subtrees(root)
     original_tree = subtrees[-1]
-    all_node_lists_with_len = [(subtree, len(subtree)) for subtree in subtrees]
-    size = len(subtrees)
-    for index, (subtree, subtree_size) in enumerate(all_node_lists_with_len):
+    size = len(original_tree)
+    for index, subtree in enumerate(subtrees):
         subtree = create_subtree(subtree, original_tree)
         genotype = create_genotype(size, subtree, subclone_index_map)
-        genotype_subtree_map[genotype] = (index, subtree_size)
-    return genotype_subtree_map, index_subclone_map
+        genotype_list = tuple([item[1] for item in genotype])
+        genotype_subtree_map[genotype] = index
+        genotype_list_subtree_map[genotype_list] = index
+    return (
+        genotype_subtree_map,
+        genotype_list_subtree_map,
+        index_subclone_map,
+        subclone_index_map,
+    )
