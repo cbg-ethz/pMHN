@@ -76,8 +76,8 @@ class TreeMHNBackendCode:
         V_old = np.zeros(subtrees_size)
         V_old[0] = -1.0
         V_new = np.zeros(subtrees_size)
-        x = 0.0
         for genotype, index in tree_wrapper._genotype_subtree_node_map.items():
+            x = 0.0
             genotype_list = [item[1] for item in genotype]
             for i, (node, val) in enumerate(genotype):
                 if val:
@@ -111,7 +111,6 @@ class TreeMHNBackendCode:
                 return np.log(x + self._jitter) + np.log(sampling_rate)
             V_old += V_new * x
             V_new = np.zeros_like(V_new)
-            x = 0.0
 
         return 0.0
 
