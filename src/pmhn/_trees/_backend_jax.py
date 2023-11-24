@@ -1,11 +1,18 @@
 """JAX version of TreeMHN"""
 from collections import namedtuple
 from functools import partial
-from typing import Sequence
 
 import jax
 import jax.numpy as jnp
+from anytree import Node
 from jaxtyping import Array, Float, Int
+
+from pmhn._trees._tree_utils import (
+    _OffdiagDict,
+    _OndiagList,
+    _RawTraj,
+    construct_paths_matrix,
+)
 
 
 def _extend_theta(theta: Float[Array, "n n"]) -> Float[Array, "n+1 n+1"]:
@@ -24,8 +31,6 @@ def _get_pad_value(n_genes: int) -> int:
     return n_genes + 1
 
 
-_RawTraj = tuple[int, ...] | list[int]
-_OffdiagDict = dict[tuple[int, int], _RawTraj]
 _OffdiagAuxArray = Int[Array, "n_entries n_events"]
 
 
@@ -130,7 +135,6 @@ def _construct_offdiag_q_matrix(
     return ret
 
 
-_OndiagList = list[Sequence[_RawTraj]]
 _OndiagAuxArray = Int[Array, "n_subtrees n_traj n_events"]
 
 
@@ -183,12 +187,12 @@ def _construct_diag_q_matrix(
     )
 
 
-_WrappedTree = namedtuple("_AuxTree", ["ondiag", "offdiag"])
+WrappedTree = namedtuple("WrappedTree", ["ondiag", "offdiag"])
 
 
 def get_q_matrix(
     theta: Float[Array, "n n"],
-    wrapped_tree: _WrappedTree,
+    wrapped_tree: WrappedTree,
 ) -> Float[Array, "n_subtrees n_subtrees"]:
     """Creates the $Q$ matrix from the parameters."""
     extended_theta = _extend_theta(theta)
@@ -225,8 +229,24 @@ def _logp_from_q_mat(
 
 def logp(
     theta: Float[Array, "n n"],
-    wrapped_tree: _WrappedTree,
+    wrapped_tree: WrappedTree,
     jitter: float = 1e-10,
 ) -> float:
     q_mat = get_q_matrix(theta=theta, wrapped_tree=wrapped_tree)
     return _logp_from_q_mat(q_mat, jitter)
+
+
+def wrap_tree(tree: Node, n_genes: int) -> WrappedTree:
+    """Wraps the tree into a format suitable for JAX.
+
+    Returns:
+        WrappedTree(ondiag, offdiag)
+    """
+    offdiag, diag = construct_paths_matrix(tree, n_genes=n_genes)
+
+    pad_value = _get_pad_value(n_genes)
+
+    return WrappedTree(
+        ondiag=_prepare_ondiag(ondiag=diag, pad_value=pad_value),
+        offdiag=_prepare_offdiag(offdiag=offdiag, pad_value=pad_value),
+    )

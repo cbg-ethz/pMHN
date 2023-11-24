@@ -221,6 +221,8 @@ def _construct_offdiag_paths(subtrees: list[Node]) -> _OffdiagDict:
 
     for i, i_tree in enumerate(subtrees):
         for j, j_tree in enumerate(subtrees):
+            if i == j:
+                continue
             comp = bfs_compare(i_tree, j_tree)
             if comp is not None:
                 offdiag[(i, j)] = get_lineage(comp)
