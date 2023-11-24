@@ -242,11 +242,11 @@ def wrap_tree(tree: Node, n_genes: int) -> WrappedTree:
     Returns:
         WrappedTree(ondiag, offdiag)
     """
-    offdiag, diag = construct_paths_matrix(tree, n_genes=n_genes)
+    paths_matrix = construct_paths_matrix(tree, n_genes=n_genes)
 
     pad_value = _get_pad_value(n_genes)
 
     return WrappedTree(
-        ondiag=_prepare_ondiag(ondiag=diag, pad_value=pad_value),
-        offdiag=_prepare_offdiag(offdiag=offdiag, pad_value=pad_value),
+        ondiag=_prepare_ondiag(ondiag=paths_matrix.diag, pad_value=pad_value),
+        offdiag=_prepare_offdiag(offdiag=paths_matrix.offdiag, pad_value=pad_value),
     )
