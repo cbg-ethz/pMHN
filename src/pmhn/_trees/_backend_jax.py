@@ -1,4 +1,5 @@
 """JAX version of TreeMHN"""
+from collections import namedtuple
 from functools import partial
 from typing import Sequence
 
@@ -182,13 +183,18 @@ def _construct_diag_q_matrix(
     )
 
 
+_WrappedTree = namedtuple("_AuxTree", ["ondiag", "offdiag"])
+
+
 def get_q_matrix(
     theta: Float[Array, "n n"],
-    ondiag: _OndiagAuxArray,
-    offdiag: _OndiagAuxArray,
+    wrapped_tree: _WrappedTree,
 ) -> Float[Array, "n_subtrees n_subtrees"]:
     """Creates the $Q$ matrix from the parameters."""
     extended_theta = _extend_theta(theta)
+
+    ondiag = wrapped_tree.ondiag
+    offdiag = wrapped_tree.offdiag
 
     n_subtrees = ondiag.shape[0]
 
@@ -198,3 +204,29 @@ def get_q_matrix(
     q_ondiag = _construct_diag_q_matrix(ondiag=ondiag, extended_theta=extended_theta)
 
     return q_ondiag + q_offdiag
+
+
+def _logp_from_q_mat(
+    q_mat: Float[Array, "n_subtrees n_subtrees"],
+    jitter: float = 1e-10,
+) -> Float:
+    n_subtrees = q_mat.shape[0]
+
+    i_mat = jnp.eye(n_subtrees)
+    v_mat = i_mat - q_mat
+
+    e = jnp.zeros(n_subtrees, dtype=q_mat.dtype)
+    e = e.at[0].set(1.0)
+
+    x = jax.scipy.linalg.solve_triangular(v_mat, e, trans="T")
+
+    return jnp.log(x[-1] + jitter)
+
+
+def logp(
+    theta: Float[Array, "n n"],
+    wrapped_tree: _WrappedTree,
+    jitter: float = 1e-10,
+) -> float:
+    q_mat = get_q_matrix(theta=theta, wrapped_tree=wrapped_tree)
+    return _logp_from_q_mat(q_mat, jitter)
