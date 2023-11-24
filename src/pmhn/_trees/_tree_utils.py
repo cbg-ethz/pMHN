@@ -1,6 +1,7 @@
-from anytree import Node, RenderTree, LevelOrderGroupIter
 from itertools import combinations, product
 from typing import Optional
+
+from anytree import LevelOrderGroupIter, Node, PreOrderIter, RenderTree
 
 
 def all_combinations_of_elements(*lists):
@@ -209,6 +210,65 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
         return iter2[-1][0]
 
     return exit_node
+
+
+_RawTraj = tuple[int, ...] | list[int]
+_OffdiagDict = dict[tuple[int, int], _RawTraj]
+
+
+def _construct_offdiag_paths(subtrees: list[Node]) -> _OffdiagDict:
+    offdiag = {}
+
+    for i, i_tree in enumerate(subtrees):
+        for j, j_tree in enumerate(subtrees):
+            comp = bfs_compare(i_tree, j_tree)
+            if comp is not None:
+                offdiag[(i, j)] = get_lineage(comp)
+
+    return offdiag
+
+
+_OndiagList = list[list[_RawTraj]]
+
+
+def _get_exit_trajectories(root: Node, n_mutations: int) -> list[_RawTraj]:
+    """Constructs a list of trajectories resulting
+    in an exit from the tree considered."""
+    exit_trajs = []
+
+    # For each node we will consider all potential children
+    for node in PreOrderIter(root):
+        current_lineage = list(get_lineage(node))
+
+        # We can add mutations such that:
+        #   1. Are not in the lineage
+        #   2. Are not already children in the tree
+
+        children_mutations = set([ch.name for ch in node.children])
+
+        available = set(range(1, n_mutations + 1)).difference(
+            children_mutations.union(current_lineage)
+        )
+
+        for new_mut in available:
+            traj = tuple(current_lineage + [new_mut])
+            exit_trajs.append(traj)
+
+    return exit_trajs
+
+
+def construct_paths_matrix(
+    root: Node, n_genes: int
+) -> tuple[_OffdiagDict, _OndiagList]:
+    subtrees_dict = create_all_subtrees(root)
+    subtrees = [x[0] for x in sorted(subtrees_dict.items(), key=lambda x: x[1])]
+
+    offdiag = _construct_offdiag_paths(subtrees)
+    diag_terms = [
+        _get_exit_trajectories(subtree, n_mutations=n_genes) for subtree in subtrees
+    ]
+
+    return offdiag, diag_terms
 
 
 if __name__ == "__main__":
