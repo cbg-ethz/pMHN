@@ -58,6 +58,7 @@ class WrappedTree(NamedTuple):
     exit_paths: ExitPathsArray
     n_genes: int
 
+    @property
     def n_subtrees(self) -> int:
         """Number of subtrees (including root-only as well
         as the given tree)."""

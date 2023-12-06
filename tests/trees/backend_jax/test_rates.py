@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import numpy.testing as npt
-import pmhn._trees._backend_jax._log_rates as rates
+import pmhn._trees._backend_jax._rates as rates
 import pytest
 
 

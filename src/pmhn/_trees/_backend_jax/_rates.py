@@ -118,7 +118,8 @@ def _log_neg_Q_to_log_V(
     We have
         V_{ii} = 1 - Q_{ii}
     so that
-        log(V_{ii}) = log(1 - Q_{ii}) = log(1 + exp(\log(-Q_{ii}))) = log(1 + exp(input_i))
+        log(V_{ii}) = log(1 - Q_{ii}) = log(1 + exp(log(-Q_{ii})))
+                    = log(1 + exp(input_i))
     """
     # TODO(Pawel): UNTESTED
     return jax.nn.softplus(log_neg_Q)
@@ -152,6 +153,7 @@ def _construct_log_magic_matrix(
     log_neg_Q_diag = _construct_log_neg_Q_diag(
         paths=tree.diag_paths,
         extended_theta=extended_theta,
+        n_subtrees=tree.n_subtrees,
     )
     log_Q_offdiag = _construct_log_Q_offdiag(
         paths=tree.offdiag_paths,
@@ -180,6 +182,5 @@ def _construct_log_magic_matrix(
     return COOMatrix(
         diagonal=_log_neg_Q_to_log_V(log_neg_Q_diag_adjusted),
         offdiagonal=log_Q_offdiag_adjusted,
-        size=log_U.shape[0],
         fill_value=-jnp.inf,
     )
