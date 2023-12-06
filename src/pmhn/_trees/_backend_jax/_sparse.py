@@ -7,18 +7,22 @@ from jaxtyping import Array, Float, Int
 
 class Values(NamedTuple):
     start: Int[Array, " K"]
-    end: Int[Array, " K"] | None
+    end: Int[Array, " K"]
     value: Float[Array, " K"]
 
+    @property
     def size(self) -> int:
         return self.start.shape[0]
 
 
 class COOMatrix(NamedTuple):
-    diagonal: Float[Array, " n_subtrees"]
+    diagonal: Float[Array, " size"]
     offdiagonal: Values
-    size: int
     fill_value: float | Float
+
+    @property
+    def size(self) -> int:
+        return self.diagonal.shape[0]
 
     def to_dense(self) -> Float[Array, "size size"]:
         """Converts a COO matrix to a dense matrix.
@@ -28,8 +32,6 @@ class COOMatrix(NamedTuple):
             Depending on the convention used, you may prefer
             to transpose it.
         """
-        # TODO(Pawel): UNTESTED
-
         # Fill the matrix with the fill value
         a = jnp.full((self.size, self.size), fill_value=self.fill_value)
 
@@ -39,7 +41,7 @@ class COOMatrix(NamedTuple):
         ) -> Float[Array, "size size"]:
             return a.at[i, i].set(self.diagonal[i])
 
-        a = jax.lax.fori_loop(0, self.diagonal.shape[0], _diag_loop_body, a)
+        a = jax.lax.fori_loop(0, self.size, _diag_loop_body, a)
 
         # Iterate over the off-diagonal terms
         def _offdiag_loop_body(
@@ -49,5 +51,5 @@ class COOMatrix(NamedTuple):
                 self.offdiagonal.value[i]
             )
 
-        a = jax.lax.fori_loop(0, self.offdiagonal.size(), _offdiag_loop_body, a)
+        a = jax.lax.fori_loop(0, self.offdiagonal.size, _offdiag_loop_body, a)
         return a
