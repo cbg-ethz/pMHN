@@ -1,6 +1,8 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 import numpy.testing as npt
+import pmhn._trees._backend_jax._private_api as api
 import pmhn._trees._backend_jax._rates as rates
 import pytest
 
@@ -65,6 +67,46 @@ def test_construct_log_exit_rate_3() -> None:
 
     path = jnp.asarray([0])
     npt.assert_allclose(0.0, rates._construct_log_exit_rate(path, extended_omega))
+
+
+# *** _construct_log_Q_offdiag ***
+
+
+@pytest.mark.parametrize("n_genes", [4, 5, 21])
+def test_construct_log_Q_offdiag(n_genes: int, seed: int = 42) -> None:
+    rng = np.random.default_rng(seed)
+
+    paths = api.DoublyIndexedPaths(
+        start=jnp.arange(7),
+        end=jnp.arange(8, 35, 2)[:7],
+        path=jnp.asarray(
+            [
+                [0, 0, rng.integers(1, n_genes)],
+                [0, 0, 2],
+                [0, 2, 1],
+                [0, 1, 1 + rng.integers(1, n_genes - 1)],
+                [0, 1, 3],
+                [1, 3, 2],
+                [0, 1, 3],
+            ]
+        ),
+    )
+    theta = jnp.asarray(rng.normal(size=(n_genes, n_genes)))
+    extended_theta = rates._extend_theta(theta)
+
+    offdiag = rates._construct_log_Q_offdiag(paths=paths, extended_theta=extended_theta)
+
+    npt.assert_allclose(offdiag.start, paths.start)
+    npt.assert_allclose(offdiag.end, paths.end)
+    expected = jnp.asarray(
+        [
+            rates._construct_log_transtion_rate(
+                traj=traj, extended_theta=extended_theta
+            )
+            for traj in paths.path
+        ]
+    )
+    npt.assert_allclose(offdiag.value, expected)
 
 
 # *** _construct_log_U ***

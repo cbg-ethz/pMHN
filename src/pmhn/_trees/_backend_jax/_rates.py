@@ -53,7 +53,7 @@ def _construct_log_transtion_rate(
 
 def _construct_log_exit_rate(
     traj: Int[Array, " n_events"],
-    extended_omega: Float[Array, " n+1"],
+    extended_omega: Float[Array, " G+1"],
 ) -> Float:
     return jnp.sum(extended_omega[traj - 1])
 
@@ -61,7 +61,6 @@ def _construct_log_exit_rate(
 def _construct_log_Q_offdiag(
     paths: DoublyIndexedPaths, extended_theta: Float[Array, "G+1 G+1"]
 ) -> Values:
-    # TODO(Pawel): UNTESTED
     return Values(
         start=paths.start,
         end=paths.end,
