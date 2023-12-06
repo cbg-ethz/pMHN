@@ -1,6 +1,6 @@
+import jax
 from jaxtyping import Float, Array, Int
-
-
+from pmhn._trees._backend_jax._wrapper import WrappedTree
 
 
 def loglikelihood(
