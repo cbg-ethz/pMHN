@@ -1,7 +1,7 @@
 from typing import NamedTuple
-from jaxtyping import Float, Array, Int
+
 from anytree import Node
-from pmhn._trees._backend_jax._const import PADDING
+from jaxtyping import Array, Int
 
 
 class IndexedPaths(NamedTuple):
@@ -26,11 +26,14 @@ class DoublyIndexedPaths(NamedTuple):
         path: path representing the rate
           used in the transition
     """
+
     start: Int[Array, " K"]
     end: Int[Array, " K"]
     path: Int[Array, "K n_events"]
 
+
 ExitPathsArray = Int[Array, "n_subtrees n_events"]
+
 
 class WrappedTree(NamedTuple):
     """Tree wrapper encoding the paths used to
@@ -45,10 +48,11 @@ class WrappedTree(NamedTuple):
         exit_paths: paths used to construct the exit rates (to the observed state)
             from omega
         n_genes: number of genes
-    
+
     Note:
         The paths are padded with the `n_genes+1` value.
     """
+
     diag_paths: IndexedPaths
     offdiag_paths: DoublyIndexedPaths
     exit_paths: ExitPathsArray
@@ -62,14 +66,16 @@ class WrappedTree(NamedTuple):
 
 def wrap_tree(tree: Node, n_genes: int) -> tuple[WrappedTree, list[Node]]:
     """Wraps a tree into a `WrappedTree` object.
-    
+
     Args:
         tree: a tree. The root should be annotated as 0 and the other
-          nodes are annotated with integers from {1, ... `n_genes`} (inclusive) 
+          nodes are annotated with integers from {1, ... `n_genes`} (inclusive)
         n_genes: number of genes
 
     Returns:
         wrapped tree, can be used to evaluate the likelihood
         list of sorted subtrees (e.g., for visualisation purposes)
     """
+    # TODO(Pawel): UNTESTED
+    # TODO(Pawel): NOT-IMPLEMENTED
     raise NotImplementedError

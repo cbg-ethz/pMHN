@@ -1,11 +1,16 @@
 """Submodule used to construct the rates matrices from wrapped tree."""
 import jax
 import jax.numpy as jnp
-from jaxtyping import Float, Array, Int
+from jaxtyping import Array, Float, Int
 
-from pmhn._trees._backend_jax._wrapper import WrappedTree, IndexedPaths, DoublyIndexedPaths, ExitPathsArray
-from pmhn._trees._backend_jax._sparse import Values, COOMatrix
 from pmhn._trees._backend_jax._const import PADDING
+from pmhn._trees._backend_jax._sparse import COOMatrix, Values
+from pmhn._trees._backend_jax._wrapper import (
+    DoublyIndexedPaths,
+    ExitPathsArray,
+    IndexedPaths,
+    WrappedTree,
+)
 
 # We require PADDING to be 0 because of `_extend_theta` and `_extend_omega`
 if PADDING != 0:
@@ -15,20 +20,20 @@ if PADDING != 0:
 def _extend_theta(theta: Float[Array, "G G"]) -> Float[Array, "G+1 G+1"]:
     """Adds a new row and column to theta, filled with zeros,
     to represent a mock gene not affecting any rates.
-    
+
     Note:
         `PADDING` has to be -1 for this to work
         (as we add the last = -1th gene)
     """
     n = theta.shape[0]
-    ret = jnp.zeros((n + 1, n + 1))
+    ret = jnp.zeros((n + 1, n + 1), dtype=theta.dtype)
     return ret.at[:n, :n].set(theta)
 
 
 def _extend_omega(omega: Float[Array, " G"]) -> Float[Array, " G+1"]:
     """Adds a 0 entry to the omega vector to represent a mock
     gene not affecting any rates.
-    
+
     Note:
         `PADDING` has to be 0 for this to work
         The trick is that we use `gene-1`, so that
@@ -42,6 +47,7 @@ def _construct_log_transtion_rate(
     traj: Int[Array, " n_events"],
     extended_theta: Float[Array, "n+1 n+1"],
 ) -> Float:
+    # TODO(Pawel): UNTESTED
     new_mut = traj[-1]  # The added mutation is the last one
     return jnp.sum(extended_theta[new_mut - 1, traj - 1])
 
@@ -50,10 +56,14 @@ def _construct_log_exit_rate(
     traj: Int[Array, " n_events"],
     extended_omega: Float[Array, " n+1"],
 ) -> Float:
+    # TODO(Pawel): UNTESTED
     return jnp.sum(extended_omega[traj - 1])
 
 
-def _construct_log_Q_offdiag(paths: DoublyIndexedPaths, extended_theta: Float[Array, "G+1 G+1"]) -> Values:
+def _construct_log_Q_offdiag(
+    paths: DoublyIndexedPaths, extended_theta: Float[Array, "G+1 G+1"]
+) -> Values:
+    # TODO(Pawel): UNTESTED
     return Values(
         start=paths.start,
         end=paths.end,
@@ -62,26 +72,31 @@ def _construct_log_Q_offdiag(paths: DoublyIndexedPaths, extended_theta: Float[Ar
             axis=1,
             extended_theta=extended_theta,
             arr=paths.path,
-        )
+        ),
     )
+
 
 def segment_logsumexp(
     values: Float[Array, " n"],
     indices: Int[Array, " n"],
     num_segments: int,
 ) -> Float[Array, " num_segments"]:
+    # TODO(Pawel): UNTESTED
     max_per_segment = jax.ops.segment_max(values, indices, num_segments)
     adjusted_values = jnp.exp(values - max_per_segment[indices])
     summed_exp_values = jax.ops.segment_sum(adjusted_values, indices, num_segments)
     return jnp.log(summed_exp_values) + max_per_segment
 
 
-def _construct_log_neg_Q_diag(paths: IndexedPaths, extended_theta: Float[Array, "G+1 G+1"], n_subtrees: int) -> Float[Array, " n_subtrees"]:
+def _construct_log_neg_Q_diag(
+    paths: IndexedPaths, extended_theta: Float[Array, "G+1 G+1"], n_subtrees: int
+) -> Float[Array, " n_subtrees"]:
     """Constructs the log (lambda_1 + ... + lambda_k) entries.
 
     Note:
         This is the same as log(-Q_{ii}) as Q_{ii} <= 0
     """
+    # TODO(Pawel): UNTESTED
     log_rates = jnp.apply_along_axis(
         func1d=_construct_log_transtion_rate,
         axis=1,
@@ -94,24 +109,34 @@ def _construct_log_neg_Q_diag(paths: IndexedPaths, extended_theta: Float[Array, 
         num_segments=n_subtrees,
     )
 
-def _log_neg_Q_to_log_V(log_neg_Q: Float[Array, " n_subtrees"]) -> Float[Array, " n_subtrees"]:
+
+def _log_neg_Q_to_log_V(
+    log_neg_Q: Float[Array, " n_subtrees"]
+) -> Float[Array, " n_subtrees"]:
     """Converts the log(-Q_{ii}) entries to log(V_{ii}) entries.
-    
+
     We have
         V_{ii} = 1 - Q_{ii}
     so that
         log(V_{ii}) = log(1 - Q_{ii}) = log(1 + exp(\log(-Q_{ii}))) = log(1 + exp(input_i))
     """
+    # TODO(Pawel): UNTESTED
     return jax.nn.softplus(log_neg_Q)
 
 
-def _construct_log_U(paths: ExitPathsArray, extended_omega: Float[Array, " G+1"], log_tau: float | Float) -> Float[Array, " n_subtrees"]:
-    return jnp.apply_along_axis(
-        func1d=_construct_log_exit_rate,
-        axis=1,
-        extended_omega=extended_omega,
-        arr=paths,
-    ) - log_tau  # Note that we *subtract* log_tau, because we have U as a rate matrix, i.e, 1/tau
+def _construct_log_U(
+    paths: ExitPathsArray, extended_omega: Float[Array, " G+1"], log_tau: float | Float
+) -> Float[Array, " n_subtrees"]:
+    # TODO(Pawel): UNTESTED
+    return (
+        jnp.apply_along_axis(
+            func1d=_construct_log_exit_rate,
+            axis=1,
+            extended_omega=extended_omega,
+            arr=paths,
+        )
+        - log_tau
+    )  # Note that we *subtract* log_tau, because we have U as a rate matrix, i.e, 1/tau
 
 
 def _construct_log_magic_matrix(
@@ -120,6 +145,7 @@ def _construct_log_magic_matrix(
     omega: Float[Array, " G"],
     log_tau: float | Float,
 ) -> COOMatrix:
+    # TODO(Pawel): UNTESTED
     """Constructs the rates matrix from the wrapped tree."""
     # Construct the Q matrix
     extended_theta = _extend_theta(theta)
