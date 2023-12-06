@@ -137,7 +137,6 @@ def _log_neg_Q_to_log_V(
 def _construct_log_U(
     paths: ExitPathsArray, extended_omega: Float[Array, " G+1"], log_tau: float | Float
 ) -> Float[Array, " n_subtrees"]:
-    # TODO(Pawel): UNTESTED
     return (
         jnp.apply_along_axis(
             func1d=_construct_log_exit_rate,

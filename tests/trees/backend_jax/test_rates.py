@@ -149,6 +149,19 @@ def test_construct_log_U(log_tau: float, seed: int) -> None:
     )
 
 
+def test_log_tau_right_sign(n_genes: int = 2, n_subtrees: int = 10) -> None:
+    omega = jnp.zeros(n_genes)
+    # Generate some paths
+    paths = jnp.eye(n_subtrees, dtype=jnp.int32)
+
+    tau = 0.5
+    log_U = rates._construct_log_U(
+        paths=paths, extended_omega=rates._extend_omega(omega), log_tau=jnp.log(tau)
+    )
+    U = jnp.exp(log_U)
+    npt.assert_allclose(tau * jnp.ones(n_subtrees), jnp.reciprocal(U))
+
+
 # *** segment_logsumexp ***
 
 
