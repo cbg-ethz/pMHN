@@ -75,13 +75,26 @@ def _construct_log_Q_offdiag(
 
 def segment_logsumexp(
     values: Float[Array, " n"],
-    indices: Int[Array, " n"],
+    segment_ids: Int[Array, " n"],
     num_segments: int,
 ) -> Float[Array, " num_segments"]:
-    # TODO(Pawel): UNTESTED
-    max_per_segment = jax.ops.segment_max(values, indices, num_segments)
-    adjusted_values = jnp.exp(values - max_per_segment[indices])
-    summed_exp_values = jax.ops.segment_sum(adjusted_values, indices, num_segments)
+    """logsumexp operation applied to each segment
+
+    Args:
+        values: values to which the logsumexp is applied
+        segment_ids: indices of the segments
+        num_segments: number of segments
+
+    See
+    https://jax.readthedocs.io/en/latest/_autosummary/jax.ops.segment_sum.html
+    """
+    max_per_segment = jax.ops.segment_max(
+        values, segment_ids=segment_ids, num_segments=num_segments
+    )
+    adjusted_values = jnp.exp(values - max_per_segment[segment_ids])
+    summed_exp_values = jax.ops.segment_sum(
+        adjusted_values, segment_ids=segment_ids, num_segments=num_segments
+    )
     return jnp.log(summed_exp_values) + max_per_segment
 
 
@@ -102,7 +115,7 @@ def _construct_log_neg_Q_diag(
     )
     return segment_logsumexp(
         values=log_rates,
-        indices=paths.index,
+        segment_ids=paths.index,
         num_segments=n_subtrees,
     )
 

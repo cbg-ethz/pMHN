@@ -147,3 +147,25 @@ def test_construct_log_U(log_tau: float, seed: int) -> None:
             paths, extended_omega=rates._extend_omega(omega), log_tau=log_tau
         ),
     )
+
+
+# *** segment_logsumexp ***
+
+
+def test_segment_logsumexp() -> None:
+    indices = jnp.asarray([1, 0, 0, 2, 2, 2])
+    exp_values = jnp.asarray([0.1, 2, 3, 10, 11, 12])
+    obtained = rates.segment_logsumexp(
+        values=jnp.log(exp_values),
+        segment_ids=indices,
+        num_segments=3,
+    )
+    expected = jnp.asarray(
+        [
+            jnp.log(exp_values[1] + exp_values[2]),
+            jnp.log(exp_values[0]),
+            jnp.log(exp_values[3] + exp_values[4] + exp_values[5]),
+        ]
+    )
+
+    npt.assert_allclose(expected, obtained)
