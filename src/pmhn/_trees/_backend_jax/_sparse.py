@@ -100,3 +100,36 @@ class COOMatrix(NamedTuple):
 
         # Finally, we will update the diagonal entry
         return a.at[end].set(self.diagonal[end])
+
+
+def coo_matrix_from_array(
+    a: Float[Array, "size size"], fill_value: Float = jnp.nan
+) -> COOMatrix:
+    """Converts a dense matrix to a COO matrix.
+
+    Note:
+        This function:
+          - defeats the efficiency purpose of COO matrices,
+          - is not JIT-compatible.
+        Hence, it should be used only for testing purposes.
+    """
+    starts = []
+    ends = []
+    values = []
+
+    for s in range(a.shape[0]):
+        for e in range(a.shape[1]):
+            if s != e:
+                starts.append(s)
+                ends.append(e)
+                values.append(a[s, e])
+
+    offdiag = Values(
+        start=jnp.asarray(starts), end=jnp.asarray(ends), value=jnp.asarray(values)
+    )
+    diag = jnp.diag(a)
+    return COOMatrix(
+        offdiagonal=offdiag,
+        diagonal=diag,
+        fill_value=fill_value,
+    )
