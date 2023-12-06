@@ -198,3 +198,52 @@ def test_log_neg_Q_to_log_V(size: int, seed: int) -> None:
     logV = jnp.log1p(-Q)  # log(1 - Q)
 
     npt.assert_allclose(logV, rates._log_neg_Q_to_log_V(log_neg_Q))
+
+
+# *** _construct_log_magic_matrix ***
+
+
+def test_construct_log_magic_matrix_smoke(genes: int = 5) -> None:
+    """This is just a smoke test."""
+    rng = np.random.default_rng(42)
+    omega = jnp.asarray(rng.normal(size=genes))
+    theta = jnp.asarray(rng.normal(size=(genes, genes)))
+
+    tree = api.WrappedTree(
+        n_genes=genes,
+        diag_paths=api.IndexedPaths(
+            index=jnp.asarray([0, 0, 1, 2]),
+            path=jnp.asarray(
+                [
+                    [0, 0, 0],
+                    [0, 0, 1],
+                    [0, 1, 2],
+                    [0, 1, 3],
+                ]
+            ),
+        ),
+        offdiag_paths=api.DoublyIndexedPaths(
+            start=jnp.asarray([0, 1]),
+            end=jnp.asarray([2, 2]),
+            path=jnp.asarray([[0, 0, 1], [0, 0, 2]]),
+        ),
+        exit_paths=jnp.asarray(
+            [
+                [0, 0, 1],
+                [0, 0, 2],
+                [0, 1, 2],
+            ]
+        ),
+    )
+
+    coo_matrix = rates._construct_log_magic_matrix(
+        tree=tree,
+        theta=theta,
+        omega=omega,
+        log_tau=0.0,
+    )
+
+    assert coo_matrix.to_dense().shape == (3, 3)
+
+
+# TODO(Pawel): Add explicit tests here.

@@ -106,7 +106,6 @@ def _construct_log_neg_Q_diag(
     Note:
         This is the same as log(-Q_{ii}) as Q_{ii} <= 0
     """
-    # TODO(Pawel): UNTESTED
     log_rates = jnp.apply_along_axis(
         func1d=_construct_log_transtion_rate,
         axis=1,
