@@ -74,7 +74,7 @@ def _construct_log_Q_offdiag(
 
 
 def segment_logsumexp(
-    values: Float[Array, " n"],
+    data: Float[Array, " n"],
     segment_ids: Int[Array, " n"],
     num_segments: int,
 ) -> Float[Array, " num_segments"]:
@@ -89,9 +89,9 @@ def segment_logsumexp(
     https://jax.readthedocs.io/en/latest/_autosummary/jax.ops.segment_sum.html
     """
     max_per_segment = jax.ops.segment_max(
-        values, segment_ids=segment_ids, num_segments=num_segments
+        data, segment_ids=segment_ids, num_segments=num_segments
     )
-    adjusted_values = jnp.exp(values - max_per_segment[segment_ids])
+    adjusted_values = jnp.exp(data - max_per_segment[segment_ids])
     summed_exp_values = jax.ops.segment_sum(
         adjusted_values, segment_ids=segment_ids, num_segments=num_segments
     )
@@ -114,7 +114,7 @@ def _construct_log_neg_Q_diag(
         extended_theta=extended_theta,
     )
     return segment_logsumexp(
-        values=log_rates,
+        log_rates,
         segment_ids=paths.index,
         num_segments=n_subtrees,
     )

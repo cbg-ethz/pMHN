@@ -156,7 +156,7 @@ def test_segment_logsumexp() -> None:
     indices = jnp.asarray([1, 0, 0, 2, 2, 2])
     exp_values = jnp.asarray([0.1, 2, 3, 10, 11, 12])
     obtained = rates.segment_logsumexp(
-        values=jnp.log(exp_values),
+        jnp.log(exp_values),
         segment_ids=indices,
         num_segments=3,
     )
