@@ -47,7 +47,6 @@ def _construct_log_transtion_rate(
     traj: Int[Array, " n_events"],
     extended_theta: Float[Array, "n+1 n+1"],
 ) -> Float:
-    # TODO(Pawel): UNTESTED
     new_mut = traj[-1]  # The added mutation is the last one
     return jnp.sum(extended_theta[new_mut - 1, traj - 1])
 
