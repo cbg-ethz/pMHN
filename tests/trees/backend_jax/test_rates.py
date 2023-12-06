@@ -48,6 +48,25 @@ def test_construct_log_transition_rate_2() -> None:
     )
 
 
+# *** _construct_log_exit_rate ***
+
+
+def test_construct_log_exit_rate_3() -> None:
+    omega = jnp.asarray([1, 10, 100])
+    extended_omega = rates._extend_omega(omega)
+
+    path = jnp.asarray([0, 0, 1, 2])
+    expected = omega[0] + omega[1]
+    npt.assert_allclose(expected, rates._construct_log_exit_rate(path, extended_omega))
+
+    path = jnp.asarray([0, 3, 2, 1])
+    expected = omega[0] + omega[1] + omega[2]
+    npt.assert_allclose(expected, rates._construct_log_exit_rate(path, extended_omega))
+
+    path = jnp.asarray([0])
+    npt.assert_allclose(0.0, rates._construct_log_exit_rate(path, extended_omega))
+
+
 # *** _construct_log_U ***
 
 

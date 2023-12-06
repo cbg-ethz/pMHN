@@ -55,7 +55,6 @@ def _construct_log_exit_rate(
     traj: Int[Array, " n_events"],
     extended_omega: Float[Array, " n+1"],
 ) -> Float:
-    # TODO(Pawel): UNTESTED
     return jnp.sum(extended_omega[traj - 1])
 
 
