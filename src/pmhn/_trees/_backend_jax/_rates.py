@@ -131,7 +131,6 @@ def _log_neg_Q_to_log_V(
         log(V_{ii}) = log(1 - Q_{ii}) = log(1 + exp(log(-Q_{ii})))
                     = log(1 + exp(input_i))
     """
-    # TODO(Pawel): UNTESTED
     return jax.nn.softplus(log_neg_Q)
 
 

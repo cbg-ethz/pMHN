@@ -169,3 +169,19 @@ def test_segment_logsumexp() -> None:
     )
 
     npt.assert_allclose(expected, obtained)
+
+
+# *** _log_neg_Q_to_log_V ***
+
+
+@pytest.mark.parametrize("size", [2, 5])
+@pytest.mark.parametrize("seed", [42, 111])
+def test_log_neg_Q_to_log_V(size: int, seed: int) -> None:
+    rng = np.random.default_rng(seed)
+    # The diagonal entries of Q are non-positive
+    Q = jnp.append(rng.uniform(low=-5.0, high=0.0, size=size), 0.0)
+
+    log_neg_Q = jnp.log(-Q)
+    logV = jnp.log1p(-Q)  # log(1 - Q)
+
+    npt.assert_allclose(logV, rates._log_neg_Q_to_log_V(log_neg_Q))
