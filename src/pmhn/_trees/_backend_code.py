@@ -45,7 +45,6 @@ class TreeMHNBackendCode:
             the loglikelihood of tree
         """
         subtrees_size = len(tree_wrapper._genotype_subtree_node_map)
-
         subclone_lamb_map = {}
 
         for i, subclone in enumerate(tree_wrapper._subclone_index_map.keys()):

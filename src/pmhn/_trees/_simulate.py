@@ -98,7 +98,6 @@ def _simulate_tree(
     # TODO(Pawel): This is part of https://github.com/cbg-ethz/pMHN/issues/14
     #   Note that the sampling time is known that our `theta` entries
     #   are log-Theta entries from the paper.
-
     n_mutations = len(theta)
     node_time_map = {}
     root = Node(0)
