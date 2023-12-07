@@ -1,0 +1,2399 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.0">
+    
+    
+      
+        <title>API Reference - Personalised Mutual Hazard Networks</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.45e1311d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Personalised Mutual Hazard Networks" class="md-header__button md-logo" aria-label="Personalised Mutual Hazard Networks" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Personalised Mutual Hazard Networks
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="lime"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cbg-ethz/pMHN" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pMHN
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Personalised Mutual Hazard Networks" class="md-nav__button md-logo" aria-label="Personalised Mutual Hazard Networks" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Personalised Mutual Hazard Networks
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cbg-ethz/pMHN" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pMHN
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simulations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.simulate_dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      simulate_dataset()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.simulate_genotype_known_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      simulate_genotype_known_time()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.simulate_trajectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      simulate_trajectory()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.sample_spike_and_slab" class="md-nav__link">
+    <span class="md-ellipsis">
+      sample_spike_and_slab()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#likelihood-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      Likelihood backends
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.MHNBackend" class="md-nav__link">
+    <span class="md-ellipsis">
+      MHNBackend
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MHNBackend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pmhn.MHNBackend.gradient_and_loglikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      gradient_and_loglikelihood()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.MHNLoglikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      MHNLoglikelihood
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MHNLoglikelihood">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pmhn.MHNLoglikelihood.perform" class="md-nav__link">
+    <span class="md-ellipsis">
+      perform()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.MHNCythonBackend" class="md-nav__link">
+    <span class="md-ellipsis">
+      MHNCythonBackend
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.MHNJoblibBackend" class="md-nav__link">
+    <span class="md-ellipsis">
+      MHNJoblibBackend
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.PersonalisedMHNLoglikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      PersonalisedMHNLoglikelihood
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PersonalisedMHNLoglikelihood">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pmhn.PersonalisedMHNLoglikelihood.perform" class="md-nav__link">
+    <span class="md-ellipsis">
+      perform()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#priors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priors
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.prior_horseshoe" class="md-nav__link">
+    <span class="md-ellipsis">
+      prior_horseshoe()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.prior_regularized_horseshoe" class="md-nav__link">
+    <span class="md-ellipsis">
+      prior_regularized_horseshoe()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.prior_normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      prior_normal()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.prior_only_baseline_rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      prior_only_baseline_rates()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.prior_spike_and_slab_marginalized" class="md-nav__link">
+    <span class="md-ellipsis">
+      prior_spike_and_slab_marginalized()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualisations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualisations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualisations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mutual-hazard-network-matrices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mutual Hazard Network matrices
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.plot_theta" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_theta()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.plot_offdiagonal_sparsity" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_offdiagonal_sparsity()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.plot_offdiagonal_histograms" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_offdiagonal_histograms()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.plot_theta_samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_theta_samples()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="plot_theta_samples()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#genotype-matrices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Genotype matrices
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.plot_genotypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_genotypes()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.plot_genotype_samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_genotype_samples()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#misc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Misc
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.control_no_mutation_warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      control_no_mutation_warning()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.construct_matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      construct_matrix()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pmhn.decompose_matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      decompose_matrix()
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="api-reference">API Reference</h1>
+<h2 id="simulations">Simulations</h2>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.simulate_dataset" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">simulate_dataset</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">mean_sampling_time</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Simulates a dataset of genotypes and sampling times.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>rng</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the random number generator.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_points</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of points to simulate.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>theta</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the log-MHN matrix. Can be of shape (n_mutations, n_mutations)
+or (n_points, n_mutations, n_mutations).</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mean_sampling_time</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="numpy.ndarray">ndarray</span>, float, <span title="typing.Sequence">Sequence</span>[float]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the mean sampling time.
+Can be a float (shared between all data point)
+or an array of shape (n_points,).</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>sampling times, shape (n_points,)</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>genotypes, shape (n_points, n_mutations)</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.simulate_genotype_known_time" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">simulate_genotype_known_time</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">sampling_time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">start_state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.simulate_trajectory" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">simulate_trajectory</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">max_time</span><span class="p">,</span> <span class="n">start_state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Simulates a trajectory of the jump Markov chain.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>rng</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the random number generator.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>theta</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the log-MHN matrix, theta[i, j]
+describes the additive log-hazard of mutation <code>j</code>
+onto appearance of mutation <code>i</code></p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_time</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the maximum time to simulate.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>start_state</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="pmhn._simulate._jump_chain.State">State</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the initial state of the chain.
+By default, it's the state with all 0s.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>list[tuple[float, <span title="pmhn._simulate._jump_chain.State">State</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of (time, state) pairs, where <code>time</code> is the time of the jump and <code>state</code></p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>list[tuple[float, <span title="pmhn._simulate._jump_chain.State">State</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>is the state to which the jump appeared</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>list[tuple[float, <span title="pmhn._simulate._jump_chain.State">State</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>We initialize the list with (0, start_state), i.e., the initial state at time 0.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.sample_spike_and_slab" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">sample_spike_and_slab</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">n_mutations</span><span class="p">,</span> <span class="n">diag_mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">diag_sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">offdiag_effect</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">p_offdiag</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Samples a matrix using diagonal terms from a normal
+distribution and offdiagonal terms sampled from spike and slab
+distribution.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>rng</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>NumPy random number generator.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_mutations</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of mutations.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>diag_mean</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>mean of the normal distribution used to sample
+diagonal terms.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>diag_scale</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>standard deviation of the normal distribution
+used to sample diagonal terms.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>offdiag_effect</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the standard deviation of the slab used
+to sample non-zero offdiagonal terms</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>p_offdiag</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the probability of sampling a non-zero offdiagonal
+term.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.2</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div><h2 id="likelihood-backends">Likelihood backends</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h2 id="pmhn.MHNBackend" class="doc doc-heading">
+          <code>pmhn.MHNBackend</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
+
+  
+      <p>A backend for learning the MHN model.</p>
+<p>All implementations of this interface must be able to compute
+the gradient and the loglikelihood of a given set of mutations
+and theta (log-MHN) matrix.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="pmhn.MHNBackend.gradient_and_loglikelihood" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">gradient_and_loglikelihood</span><span class="p">(</span><span class="n">mutations</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the gradient and the loglikelihood of a given set of mutations</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>theta</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>log-MHN matrix, shape (n_genes, n_genes)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gradient of the loglikelihood with respect to theta,
+shape (n_genes, n_genes)</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>loglikelihood of the given mutations, float</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h2 id="pmhn.MHNLoglikelihood" class="doc doc-heading">
+          <code>pmhn.MHNLoglikelihood</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="pmhn._ppl._singlemhn.Op">Op</span></code></p>
+
+  
+      <p>A wrapper around the MHN loglikelihood, so that
+it can be used in PyMC models.</p>
+<p>This operation expects the (unconstrained/log) MHN matrix
+of shape (n_genes, n_genes).</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="pmhn.MHNLoglikelihood.perform" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">perform</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This is the method which is called by the operation.</p>
+<p>It calculates the loglikelihood.</p>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>The arguments and the output are PyTensor variables.</p>
+</details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h2 id="pmhn.MHNCythonBackend" class="doc doc-heading">
+          <code>pmhn.MHNCythonBackend</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="pmhn._backend._learnmhn.MHNBackend" href="#pmhn.MHNBackend">MHNBackend</a></code></p>
+
+  
+      <p>A simple wrapper around the Cython implementation
+of the gradient and loglikelihood.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h2 id="pmhn.MHNJoblibBackend" class="doc doc-heading">
+          <code>pmhn.MHNJoblibBackend</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="pmhn._backend._learnmhn.MHNBackend" href="#pmhn.MHNBackend">MHNBackend</a></code></p>
+
+  
+      <p>Calculates the gradient and the loglikelihood
+by using multiple processes via Joblib, sending
+them individual patient data.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h2 id="pmhn.PersonalisedMHNLoglikelihood" class="doc doc-heading">
+          <code>pmhn.PersonalisedMHNLoglikelihood</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="pmhn._ppl._multiplemhn.Op">Op</span></code></p>
+
+  
+      <p>A wrapper around the MHN loglikelihood, so that
+it can be used in PyMC models.</p>
+<p>This operation expects the (unconstrained/log) MHN matrix
+of shape (n_genes, n_genes).</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="pmhn.PersonalisedMHNLoglikelihood.perform" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">perform</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This is the method which is called by the operation.</p>
+<p>It calculates the loglikelihood.</p>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>The arguments and the output are PyTensor variables.</p>
+</details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="priors">Priors</h2>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.prior_horseshoe" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">prior_horseshoe</span><span class="p">(</span><span class="n">n_mutations</span><span class="p">,</span> <span class="n">baselines_mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">baselines_sigma</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Constructs PyMC model with horseshoe prior on the off-diagonal terms.</p>
+<p>For full description of this prior, see
+C.M. Caralho et al., <em>Handling Sparsity via the Horseshoe</em>, AISTATS 2009.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>n_mutations</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of mutations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>baselines_mean</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior mean of the baseline rates</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>baselines_sigma</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior standard deviation of the baseline rates</p>
+            </div>
+          </td>
+          <td>
+                <code>10.0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="pymc.Model">Model</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>PyMC model. Use <code>model.theta</code> to
+access the (log-)mutual hazard network variable,
+which has shape (n_mutations, n_mutations)</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.prior_regularized_horseshoe" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">prior_regularized_horseshoe</span><span class="p">(</span><span class="n">n_mutations</span><span class="p">,</span> <span class="n">baselines_mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">baselines_sigma</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">sparsity_sigma</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">c2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lambdas_dof</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Constructs PyMC model for regularized horseshoe prior.
+To access the (log-)mutual hazard network parameters, use the <code>theta</code> variable.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>n_mutations</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of mutations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>baselines_mean</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior mean of the baseline rates</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sigma</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior standard deviation of the baseline rates</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sparsity_sigma</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>sparsity parameter, controls the prior on <code>tau</code>.
+Ignored if <code>tau</code> is provided.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.3</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>tau</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[float]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if provided, will be used as the value of <code>tau</code> in the model</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="pymc.Model">Model</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>PyMC model. Use <code>model.theta</code> to
+access the (log-)mutual hazard network variable,
+which has shape (n_mutations, n_mutations)</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <pre><code class="language-python">model = prior_regularized_horseshoe(n_mutations=10)
+with model:
+    theta = model.theta
+    pm.Potential(&quot;potential&quot;, some_function_of(theta))
+</code></pre>
+</details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.prior_normal" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">prior_normal</span><span class="p">(</span><span class="n">n_mutations</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">mean_offdiag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma_offdiag</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Constructs PyMC model in which each entry is sampled
+from multivariate normal distribution.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mean</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior mean of the diagonal entries</p>
+            </div>
+          </td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sigma</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior standard deviation of the diagonal entries</p>
+            </div>
+          </td>
+          <td>
+                <code>10.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mean_offdiag</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[float]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior mean of the off-diagonal entries, defaults to <code>mean</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sigma_offdiag</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[float]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>prior standard deviation of the off-diagonal entries,
+defaults to <code>sigma</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>This model is unlikely to result in sparse solutions
+and for very weak priors (e.g., very large sigma) the solution
+may be very multimodal.</p>
+</details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.prior_only_baseline_rates" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">prior_only_baseline_rates</span><span class="p">(</span><span class="n">n_mutations</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Constructs a PyMC model in which the theta
+matrix contains only diagonal entries.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.prior_spike_and_slab_marginalized" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">prior_spike_and_slab_marginalized</span><span class="p">(</span><span class="n">n_mutations</span><span class="p">,</span> <span class="n">baselines_mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">baselines_sigma</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">sparsity_a</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">sparsity_b</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">spike_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">slab_scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Construct a spike-and-slab mixture prior for the off-diagonal entries.</p>
+<p>See the spike-and-slab mixture prior in this
+<a href="https://betanalpha.github.io/assets/case_studies/modeling_sparsity.html#221_Discrete_Mixture_Models">post</a>.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>n_mutations</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of mutations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>baselines_mean</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>mean of the normal prior on the baseline rates</p>
+            </div>
+          </td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>baselines_sigma</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>standard deviation of the normal prior on the baseline rates</p>
+            </div>
+          </td>
+          <td>
+                <code>10.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sparsity_a</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>shape parameter of the Beta distribution controling sparsity</p>
+            </div>
+          </td>
+          <td>
+                <code>3.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sparsity_b</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>shape parameter of the Beta distribution controling sparsity</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>By default we set <code>sparsity</code> prior Beta(3, 1) for
+$E[\gamma] \approx 0.75$, which
+should result in 75% of the off-diagonal entries being close to zero.</p>
+</details>
+  </div>
+
+</div><h2 id="visualisations">Visualisations</h2>
+<h3 id="mutual-hazard-network-matrices">Mutual Hazard Network matrices</h3>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.plot_theta" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">plot_theta</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">gene_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">DEFAULT_COLORMAP</span><span class="p">,</span> <span class="n">cbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.plot_offdiagonal_sparsity" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">plot_offdiagonal_sparsity</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">thresholds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="n">true_theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">true_theta_color</span><span class="o">=</span><span class="s1">&#39;orangered&#39;</span><span class="p">,</span> <span class="n">true_theta_label</span><span class="o">=</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Off-diagonal sparsity&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Plots histogram representing the sparsity of the off-diagonal part of theta.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>thetas</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Array of theta matrices, shape (n_samples, n_mutations, n_mutations)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ax</code></td>
+          <td>
+                <code><span title="matplotlib.Axes">Axes</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>axis to plot on</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>thresholds</code></td>
+          <td>
+                <code><span title="typing.Sequence">Sequence</span>[float]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>sparsity threshold
+(distinguishing between "existing" and "non-existing" interactions)</p>
+            </div>
+          </td>
+          <td>
+                <code>(0.01, 0.1, 0.2)</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.plot_offdiagonal_histograms" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">plot_offdiagonal_histograms</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">theta_true</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.plot_theta_samples" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">plot_theta_samples</span><span class="p">(</span><span class="n">theta_samples</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">theta_true</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Plot samples from theta.</p>
+
+  </div>
+
+</div><h3 id="genotype-matrices">Genotype matrices</h3>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.plot_genotypes" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">plot_genotypes</span><span class="p">(</span><span class="n">genotypes</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">patients_on_x_axis</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">patients_label</span><span class="o">=</span><span class="s1">&#39;Patients&#39;</span><span class="p">,</span> <span class="n">genes_label</span><span class="o">=</span><span class="s1">&#39;Genes&#39;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.plot_genotype_samples" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">plot_genotype_samples</span><span class="p">(</span><span class="n">genotype_samples</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+
+  </div>
+
+</div><h2 id="misc">Misc</h2>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.control_no_mutation_warning" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">control_no_mutation_warning</span><span class="p">(</span><span class="n">silence</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Silence the warning that is raised when a mutation matrix
+does not contain any mutation.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.construct_matrix" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">construct_matrix</span><span class="p">(</span><span class="n">diag</span><span class="p">,</span> <span class="n">offdiag</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Constructs a square matrix from diagonal and offdiagonal terms.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>diag</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>array of shape (n,)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>offdiag</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>array of shape (n, n-1)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>array of shape (n, n)
+with the diagonal <code>diag</code>
+with the offdiagonal term at (k, i)
+given by offdiag[k, j(i)],
+where j(i) = i if i &lt; diagonal_index
+and then skips it for i &gt; diagonal_index</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="see-also" open>
+  <summary>See Also</summary>
+  <p>decompose_matrix, the inverse function.</p>
+</details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="pmhn.decompose_matrix" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pmhn</span><span class="o">.</span><span class="n">decompose_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Splits an (n, n) matrix into diagonal and offdiagonal terms.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>matrix</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>array of shape (n, n)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>diag, diagonal terms, shape (n,)</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>offdiag, offdiagonal terms, shape (n, n-1)</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="see-also" open>
+  <summary>See Also</summary>
+  <p>construct_matrix, the inverse function.</p>
+</details>
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>
