@@ -1,6 +1,8 @@
-from anytree import Node, RenderTree, LevelOrderGroupIter
+import dataclasses
 from itertools import combinations, product
 from typing import Optional
+
+from anytree import LevelOrderGroupIter, Node, PreOrderIter, RenderTree
 
 
 def all_combinations_of_elements(*lists):
@@ -170,10 +172,14 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
 
     Args:
         tree1: the first tree
-        tree2: the second tree
+        tree2: the second tree, assumed to have exactly one node more
+
     Returns:
            the additional node in the second tree if available, otherwise None.
 
+    Note:
+        This functions should not be used if the `tree2` has more than one node
+        than `tree1`.
     """
 
     diff_count = 0
@@ -209,6 +215,88 @@ def bfs_compare(tree1: Node, tree2: Node) -> Optional[Node]:
         return iter2[-1][0]
 
     return exit_node
+
+
+_RawTraj = tuple[int, ...] | list[int]
+_OffdiagDict = dict[tuple[int, int], _RawTraj]
+
+
+def _construct_offdiag_paths(subtrees: list[Node]) -> _OffdiagDict:
+    offdiag = {}
+
+    for i, i_tree in enumerate(subtrees):
+        for j, j_tree in enumerate(subtrees):
+            if j_tree.size != i_tree.size + 1:
+                continue
+            comp = bfs_compare(i_tree, j_tree)
+            if comp is not None:
+                offdiag[(i, j)] = get_lineage(comp)
+
+    return offdiag
+
+
+_OndiagList = list[list[_RawTraj]]
+
+
+def _get_exit_trajectories(root: Node, n_mutations: int) -> list[_RawTraj]:
+    """Constructs a list of trajectories resulting
+    in an exit from the tree considered."""
+    exit_trajs = []
+
+    # For each node we will consider all potential children
+    for node in PreOrderIter(root):
+        current_lineage = list(get_lineage(node))
+
+        # We can add mutations such that:
+        #   1. Are not in the lineage
+        #   2. Are not already children in the tree
+
+        children_mutations = set([ch.name for ch in node.children])
+
+        available = set(range(1, n_mutations + 1)).difference(
+            children_mutations.union(current_lineage)
+        )
+
+        for new_mut in available:
+            traj = tuple(current_lineage + [new_mut])
+            exit_trajs.append(traj)
+
+    return exit_trajs
+
+
+@dataclasses.dataclass
+class PathsMatrix:
+    """Path matrix.
+
+    Attributes:
+        diag: diagonal terms
+        offdiag: off-diagonal terms
+        indices: list of subtrees representing the indices
+    """
+
+    diag: _OndiagList
+    offdiag: _OffdiagDict
+    indices: list[Node]
+
+    n_genes: int
+
+    @property
+    def n_subtrees(self) -> int:
+        return len(self.indices)
+
+
+def construct_paths_matrix(root: Node, n_genes: int) -> PathsMatrix:
+    _subtrees_dict = create_all_subtrees(root)
+    subtrees = [x[0] for x in sorted(_subtrees_dict.items(), key=lambda x: x[1])]
+
+    offdiag = _construct_offdiag_paths(subtrees)
+    diag_terms = [
+        _get_exit_trajectories(subtree, n_mutations=n_genes) for subtree in subtrees
+    ]
+
+    return PathsMatrix(
+        diag=diag_terms, offdiag=offdiag, indices=subtrees, n_genes=n_genes
+    )
 
 
 if __name__ == "__main__":

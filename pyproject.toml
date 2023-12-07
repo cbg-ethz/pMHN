@@ -18,6 +18,9 @@ seaborn = "^0.12.2"
 pydantic = "^1.10.9"
 netcdf4 = "^1.6.4"
 anytree = "^2.9.0"
+jaxtyping = "^0.2.23"
+jax = "^0.4.20"
+jaxlib = "^0.4.20"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
@@ -37,4 +40,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
+
+[tool.ruff]
+select = ["E", "F", "I001"]
+ignore = ["E721", "E731", "F722"]
 
