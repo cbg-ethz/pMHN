@@ -7,9 +7,12 @@ Nat Commun 14, 3676 (2023).
 https://doi.org/10.1038/s41467-023-39400-w
 """
 
-from pmhn._trees._simulate import simulate_trees
-from pmhn._trees._interfaces import Tree
+# TODO(Pawel): test if this implementation works.
+
+
 from pmhn._trees._backend import OriginalTreeMHNBackend
+from pmhn._trees._interfaces import Tree
+from pmhn._trees._simulate import simulate_trees
 
 __all__ = [
     "simulate_trees",
