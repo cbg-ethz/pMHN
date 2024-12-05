@@ -1,4 +1,5 @@
 """Utilities for parsing data frames into AnyTree trees."""
+
 import dataclasses
 from typing import Any
 

@@ -1,4 +1,5 @@
 """The jump Markov chain simulation from an underlying Markov process."""
+
 from typing import Optional, Union, Sequence
 
 import numpy as np

@@ -1,4 +1,5 @@
 """Submodule used to construct the rates matrices from wrapped tree."""
+
 import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float, Int
