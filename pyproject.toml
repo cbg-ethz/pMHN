@@ -9,14 +9,10 @@ packages = [{include = "pmhn", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.25.0"
-mhn = "^0.0.14"
 joblib = "^1.2.0"
-pytensor = "^2.12.3"
-pymc = ">=5"
 matplotlib = "^3.7.1"
 seaborn = "^0.12.2"
 pydantic = "^1.10.9"
-netcdf4 = "^1.6.4"
 anytree = "^2.9.0"
 jaxtyping = "^0.2.23"
 jax = "^0.4.20"
@@ -30,9 +26,6 @@ pytest-cov = "^4.0.0"
 pytest-xdist = "^3.2.0"
 pre-commit = "^3.1.0"
 pyright = "^1.1.327"
-mkdocs = "^1.4.3"
-mkdocstrings = {extras = ["python"], version = "^0.22.0"}
-mkdocs-material = "^9.1.18"
 
 [build-system]
 requires = ["poetry-core"]
