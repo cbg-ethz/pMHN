@@ -159,7 +159,6 @@ def generate_loglikelihood(
     theta_link_fn=None,
     omega_link_fn=None,
 ):
-
     if theta_link_fn is None:
         theta_link_fn = _default_theta_link(dataset.n_genes)
     if omega_link_fn is None:

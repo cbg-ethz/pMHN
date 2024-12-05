@@ -1,4 +1,5 @@
 """Tree validation utilities."""
+
 from pmhn._trees._interfaces import Tree
 
 
