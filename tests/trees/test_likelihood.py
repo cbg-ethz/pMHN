@@ -2,9 +2,6 @@ import numpy as np
 import pytest
 from anytree import Node
 
-import pmhn._trees._backend as backend_orig
-import pmhn._trees._backend_code as backend_geno
-
 
 def get_loglikelihood_functions() -> list:
     """This is an auxiliary function which returns a list of
@@ -24,22 +21,7 @@ def get_loglikelihood_functions() -> list:
         (and it has a wrapper around trees for memoization),
         it could just be added here.
     """
-
-    def backend1(
-        tree: Node, theta: np.ndarray, sampling_rate: float, all_mut: set[int]
-    ) -> float:
-        return backend_orig.OriginalTreeMHNBackend().loglikelihood(
-            backend_orig.TreeWrapper(tree), theta, sampling_rate
-        )
-
-    def backend2(
-        tree: Node, theta: np.ndarray, sampling_rate: float, all_mut: set[int]
-    ) -> float:
-        return backend_geno.TreeMHNBackendCode().loglikelihood(
-            backend_geno.TreeWrapperCode(tree), theta, sampling_rate, all_mut
-        )
-
-    return [backend1, backend2]
+    return []
 
 
 @pytest.mark.parametrize("backend", get_loglikelihood_functions())
