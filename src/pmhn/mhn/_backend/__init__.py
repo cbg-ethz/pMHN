@@ -30,7 +30,7 @@ SOFTWARE.
 
 """
 
-from pmhn._mhn._backend.likelihood import (
+from pmhn.mhn._backend.likelihood import (
     grad_loglikelihood_nonzero,
     grad_loglikelihood_zero,
     loglikelihood_nonzero,

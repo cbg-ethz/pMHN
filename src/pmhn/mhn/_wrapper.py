@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import numpy as np
 from jaxtyping import Array, Float, Int  # type: ignore
 
-from pmhn._mhn._backend import (
+from pmhn.mhn._backend import (
     grad_loglikelihood_nonzero,
     loglikelihood_nonzero,
     loglikelihood_zero,

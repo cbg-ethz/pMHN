@@ -1,4 +1,4 @@
-from pmhn._mhn._wrapper import Params, generate_loglikelihood
+from pmhn.mhn._wrapper import Params, generate_loglikelihood
 
 __all__ = [
     "Params",

@@ -5,8 +5,8 @@ from jax import jit, lax
 from jax.nn import softplus
 from jax.scipy.special import logsumexp
 
-import pmhn._mhn._backend.vanilla as mhn
-from pmhn._mhn._backend.kronvec import (
+import pmhn.mhn._backend.vanilla as mhn
+from pmhn.mhn._backend.kronvec import (
     diag_scal_m,
     diag_scal_p,
     diagnosis_theta,
