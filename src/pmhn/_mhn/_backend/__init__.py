@@ -29,3 +29,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+
+from pmhn._mhn._backend.likelihood import (
+    grad_loglikelihood_nonzero,
+    grad_loglikelihood_zero,
+    loglikelihood_nonzero,
+    loglikelihood_zero,
+)
+
+__all__ = [
+    "loglikelihood_nonzero",
+    "loglikelihood_zero",
+    "grad_loglikelihood_nonzero",
+    "grad_loglikelihood_zero",
+]
