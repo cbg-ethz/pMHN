@@ -135,7 +135,7 @@ def _default_omega_link(n_genes: int) -> _OmegaLinkFn:
     return fn
 
 
-_LoglikelihoodFn = Callable[[Params], Float[Array, " "]]
+_LoglikelihoodFn = Callable[[Params], _Float]
 
 
 def _generate_loglikelihood_from_dataset(
@@ -148,15 +148,13 @@ def _generate_loglikelihood_from_dataset(
     if omega_link_fn is None:
         omega_link_fn = _default_omega_link(dataset.n_genes)
 
-    def loglikelihood(params: Params) -> Float[Array, " "]:  # type: ignore
-        def adjusted_loglike(
-            x, state: _State, n: _MutationShapePlaceholder
-        ) -> Float[Array, " "]:
+    def loglikelihood(params: Params) -> _Float:  # type: ignore
+        def adjusted_loglike(x, state: _State, n: _MutationShapePlaceholder) -> _Float:
             theta = theta_link_fn(params, x)
             omega = omega_link_fn(params, x)
             return _loglike(theta, omega, state, n)
 
-        def adjusted_loglike_zero(x) -> Float[Array, " "]:  # type: ignore
+        def adjusted_loglike_zero(x) -> _Float:  # type: ignore
             theta = theta_link_fn(params, x)
             return loglikelihood_zero(theta)
 
