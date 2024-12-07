@@ -1,15 +1,17 @@
-from typing import NamedTuple, TypeVar
+from typing import Callable, NamedTuple, TypeVar
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxtyping import Array, Float, Int
+from jaxtyping import Array, Float, Int  # type: ignore
 
 from pmhn._mhn._backend import (
     grad_loglikelihood_nonzero,
     loglikelihood_nonzero,
     loglikelihood_zero,
 )
+
+_MutationShapePlaceholder = Float[Array, " two_to_power_n_mutated"]
 
 
 class StratifiedDataSet(NamedTuple):
@@ -36,16 +38,17 @@ class StratifiedDataSet(NamedTuple):
     genotypes_nonzero: list[Int[Array, "n_patients_strata n_genes"]]
     covariates_nonzero: list[Float[Array, "n_patients_strata n_features"]]
     n_mutations: list[int]
-    n_mutation_shapes: list[Float[Array, " two_to_power_n_mutations"]]
+    n_mutation_shapes: list[_MutationShapePlaceholder]
 
 
 def stratify_dataset(
     Y: Int[Array, "n_patients n_genes"],
     X: Float[Array, "n_patients n_features"] | None = None,
 ) -> StratifiedDataSet:
-    Y = np.asarray(Y)
+    Y = np.asarray(Y)  # type: ignore
     if X is None:
-        X = np.zeros((Y.shape[0], 1))
+        X = np.zeros((Y.shape[0], 1))  # type: ignore
+    assert X is not None
 
     ns, Ys, Xs = [], [], []
 
@@ -63,15 +66,26 @@ def stratify_dataset(
     return StratifiedDataSet(
         n_genes=n_genes,
         covariates_zeros=jnp.asarray(X[idx0, ...]),
-        genotypes_nonzero=jnp.asarray(Ys),
-        covariates_nonzero=jnp.asarray(Xs),
+        genotypes_nonzero=Ys,
+        covariates_nonzero=Xs,
         n_mutations=ns,
         n_mutation_shapes=[jnp.zeros(2**n) for n in ns],
     )
 
 
+_ThetaMatrix = Float[Array, "n_genes n_genes"]
+_OmegaVector = Float[Array, " n_genes"]
+_State = Int[Array, " n_genes"]
+_Float = Float[Array, " "]
+
+
 @jax.custom_jvp
-def _loglike(theta, omega, state, n):
+def _loglike(
+    theta: _ThetaMatrix,
+    omega: _OmegaVector,
+    state: _State,
+    n: _MutationShapePlaceholder,
+) -> _Float:
     return loglikelihood_nonzero(
         theta,
         omega,
@@ -81,7 +95,10 @@ def _loglike(theta, omega, state, n):
 
 
 @_loglike.defjvp
-def _loglike_jvp(primals, tangents):
+def _loglike_jvp(
+    primals: tuple[_ThetaMatrix, _OmegaVector, _State, _MutationShapePlaceholder],
+    tangents,
+) -> tuple:
     theta, omega, state, n = primals
     theta_dot, omega_dot, _, _ = tangents
 
@@ -97,41 +114,49 @@ def _loglike_jvp(primals, tangents):
 
 
 Params = TypeVar("Params")
+_ThetaLinkFn = Callable[
+    [Params, Float[Array, " n_features"]], Float[Array, "n_genes n_genes"]
+]
+
+_OmegaLinkFn = Callable[[Params, Float[Array, " n_features"]], Float[Array, " n_genes"]]
 
 
-def _default_theta_link(n_genes: int):
-    def fn(
-        params: Params, x: Float[Array, " n_features"]
-    ) -> Float[Array, "n_genes n_genes"]:
+def _default_theta_link(n_genes: int) -> _ThetaLinkFn:
+    def fn(params: Params, x: Float[Array, " n_features"]) -> _ThetaMatrix:  # type: ignore
         return jnp.eye(n_genes)
 
     return fn
 
 
-def _default_omega_link(n_genes: int):
-    def fn(params: Params, x: Float[Array, " n_features"]) -> Float[Array, " n_genes"]:
+def _default_omega_link(n_genes: int) -> _OmegaLinkFn:
+    def fn(params: Params, x: Float[Array, " n_features"]) -> Float[Array, " n_genes"]:  # type: ignore
         return jnp.zeros(n_genes)
 
     return fn
 
 
-def generate_loglikelihood(
+_LoglikelihoodFn = Callable[[Params], Float[Array, " "]]
+
+
+def _generate_loglikelihood_from_dataset(
     dataset: StratifiedDataSet,
-    theta_link_fn=None,
-    omega_link_fn=None,
-):
+    theta_link_fn: _ThetaLinkFn | None,
+    omega_link_fn: _OmegaLinkFn | None,
+) -> _LoglikelihoodFn:
     if theta_link_fn is None:
         theta_link_fn = _default_theta_link(dataset.n_genes)
     if omega_link_fn is None:
         omega_link_fn = _default_omega_link(dataset.n_genes)
 
-    def loglikelihood(params):
-        def adjusted_loglike(x, state, n):
+    def loglikelihood(params: Params) -> Float[Array, " "]:  # type: ignore
+        def adjusted_loglike(
+            x, state: _State, n: _MutationShapePlaceholder
+        ) -> Float[Array, " "]:
             theta = theta_link_fn(params, x)
             omega = omega_link_fn(params, x)
             return _loglike(theta, omega, state, n)
 
-        def adjusted_loglike_zero(x):
+        def adjusted_loglike_zero(x) -> Float[Array, " "]:  # type: ignore
             theta = theta_link_fn(params, x)
             return loglikelihood_zero(theta)
 
@@ -153,3 +178,17 @@ def generate_loglikelihood(
         return loglikelihood_nonzero_n + loglikelihood_zero_n
 
     return loglikelihood
+
+
+def generate_loglikelihood(
+    Y: Int[Array, "n_patients n_genes"],
+    X: Float[Array, "n_patients n_features"] | None = None,
+    theta_link_fn: _ThetaLinkFn | None = None,
+    omega_link_fn: _OmegaLinkFn | None = None,
+) -> _LoglikelihoodFn:
+    dataset = stratify_dataset(Y, X)
+    return _generate_loglikelihood_from_dataset(
+        dataset=dataset,
+        theta_link_fn=theta_link_fn,
+        omega_link_fn=omega_link_fn,
+    )
