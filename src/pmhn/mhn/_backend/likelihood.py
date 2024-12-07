@@ -5,8 +5,8 @@ from jax import jit, lax
 from jax.nn import softplus
 from jax.scipy.special import logsumexp
 
-import pmhn._mhn._backend.vanilla as mhn
-from pmhn._mhn._backend.kronvec import (
+import pmhn.mhn._backend.vanilla as mhn
+from pmhn.mhn._backend.kronvec import (
     diag_scal_m,
     diag_scal_p,
     diagnosis_theta,
@@ -325,7 +325,7 @@ def cond_p_obs(
     return pTh1_cond_obs
 
 
-def _lp_prim_obs(
+def loglikelihood_nonzero(
     log_theta: jnp.ndarray,
     log_d_p: jnp.ndarray,
     state_pt: jnp.ndarray,
@@ -350,7 +350,7 @@ def _lp_prim_obs(
     return jnp.log(pTh[-1])
 
 
-def _lp_prim_obs_az(log_theta: jnp.ndarray) -> jnp.ndarray:
+def loglikelihood_zero(log_theta: jnp.ndarray) -> jnp.ndarray:
     """This computes the log Prob. to observe an uncoupled primary tumor with all 0 genotype
 
     Args:
@@ -363,7 +363,7 @@ def _lp_prim_obs_az(log_theta: jnp.ndarray) -> jnp.ndarray:
     return -softplus(log_mutation_rates)
 
 
-def _grad_prim_obs(
+def grad_loglikelihood_nonzero(
     log_theta: jnp.ndarray,
     log_d_p: jnp.ndarray,
     state_prim: jnp.ndarray,
@@ -390,7 +390,7 @@ def _grad_prim_obs(
 
 
 @jit
-def _grad_prim_obs_az(
+def grad_loglikelihood_zero(
     log_theta: jnp.ndarray,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """This computes log prob to observe a PT with all 0 genotype and its gradients wrt. theta, d_p
@@ -406,9 +406,6 @@ def _grad_prim_obs_az(
     d_th = 1 / jnp.exp(log_pth) * jnp.diag(-theta_br / (1 + jnp.sum(theta_br)) ** 2)
     d_dp = jnp.zeros(log_theta.shape[0])
     return log_pth, d_th, d_dp
-
-
-__all__ = ["_lp_prim_obs", "_lp_prim_obs_az", "_grad_prim_obs_az", "_grad_prim_obs"]
 
 
 # @partial(jit, static_argnames=["n_joint"])

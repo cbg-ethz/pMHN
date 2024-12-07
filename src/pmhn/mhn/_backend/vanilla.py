@@ -3,7 +3,7 @@ from functools import partial
 import jax.numpy as jnp
 from jax import jit, lax, vmap
 
-from pmhn._mhn._backend.kronvec import k2d0t, k2d1t, k2d10, k2dt0, k2ntt
+from pmhn.mhn._backend.kronvec import k2d0t, k2d1t, k2d10, k2dt0, k2ntt
 
 
 def k1d1(p: jnp.ndarray, theta: jnp.ndarray) -> jnp.ndarray:
