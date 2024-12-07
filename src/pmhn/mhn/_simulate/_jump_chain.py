@@ -1,9 +1,8 @@
 """The jump Markov chain simulation from an underlying Markov process."""
 
-from typing import Optional, Union, Sequence
+from typing import Optional, Sequence, Union
 
 import numpy as np
-
 
 # States are binary vectors representing genotypes
 # For example: (0, 1, 0, ...)

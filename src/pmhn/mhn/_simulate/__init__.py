@@ -1,6 +1,6 @@
 """The simulation utilities."""
 
-from pmhn._simulate._jump_chain import (
+from pmhn.mhn._simulate._jump_chain import (
     simulate_dataset,
     simulate_genotype_known_time,
     simulate_trajectory,
