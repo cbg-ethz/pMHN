@@ -3,13 +3,15 @@ import dataclasses
 import arviz as az
 import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.use("agg")
+
 import numpy as np
-import pymc as pm
-import seaborn as sns
 
 import pmhn
-pmhn.control_no_mutation_warning(silence=True)
-matplotlib.use("agg")
+from pmhn import mhn
+
+import jax
+import jax.numpy as jnp
 
 # --- Working directory ---
 workdir: "generated/mhn-bayes"
@@ -102,96 +104,6 @@ rule generate_data:
 
         np.savez(output.arrays, genotypes=genotypes, theta=theta, sampling_times=sampling_times)
 
-
-rule sample_prior:
-    output:
-        prior_samples="{scenario}/prior/samples.nc"
-    run:
-        settings = SCENARIOS[wildcards.scenario]
-        rng = np.random.default_rng(settings.prior_sampling_seed)
-        n_samples: int = 300
-
-        model = pmhn.prior_regularized_horseshoe(n_mutations=settings.n_mutations)
-        with model:
-            idata = pm.sample_prior_predictive(samples=n_samples, random_seed=rng)
-
-        idata.to_netcdf(output.prior_samples)
-
-
-rule plot_prior_predictives:
-    input:
-        thetas = expand("{scenario}/prior/theta_samples.pdf", scenario=SCENARIOS.keys()),
-        offdiagonal_histograms = expand("{scenario}/prior/offdiagonal_histograms.pdf", scenario=SCENARIOS.keys()),
-        offdiagonal_sparsity = expand("{scenario}/prior/offdiagonal_sparsity.pdf", scenario=SCENARIOS.keys()),
-        genotypes = expand("{scenario}/prior/genotype_samples.pdf", scenario=SCENARIOS.keys())
-
-
-rule plot_prior_predictive_theta:
-    input: "{scenario}/prior/samples.nc"
-    output: "{scenario}/prior/theta_samples.pdf"
-    run:
-        idata = az.from_netcdf(str(input))
-        samples = idata.prior["theta"][0].values
-
-        fig, _ = pmhn.plot_theta_samples(samples, width=6, height=4)
-        fig.savefig(str(output))
-
-
-rule plot_prior_predictive_offdiagonal_histograms:
-    input: "{scenario}/prior/samples.nc"
-    output: "{scenario}/prior/offdiagonal_histograms.pdf"
-    run:
-        idata = az.from_netcdf(str(input))
-        thetas = idata.prior["theta"][0].values
-
-        fig, ax = plt.subplots()
-        pmhn.plot_offdiagonal_histograms(thetas, ax=ax)
-        fig.tight_layout()
-        fig.savefig(str(output))      
-
-rule plot_prior_predictive_offdiagonal_sparsity:
-    input: "{scenario}/prior/samples.nc"
-    output: "{scenario}/prior/offdiagonal_sparsity.pdf"
-    run:
-        idata = az.from_netcdf(str(input))
-        thetas = idata.prior["theta"][0].values
-
-        fig, ax = plt.subplots()
-        pmhn.plot_offdiagonal_sparsity(thetas, ax=ax)
-        fig.tight_layout()
-        fig.savefig(str(output))      
-
-rule plot_prior_predictive_genotypes:
-    input: "{scenario}/prior/samples.nc"
-    output: "{scenario}/prior/genotype_samples.pdf"
-    run:
-        settings = SCENARIOS[wildcards.scenario]
-        idata = az.from_netcdf(str(input))
-        thetas = idata.prior["theta"][0].values
-
-        n_samples: int = 30
-        n_patients = settings.n_patients
-        n_mutations = settings.n_mutations
-
-        rng = np.random.default_rng(settings.prior_sampling_seed)
-
-        genotype_matrices = np.zeros((n_samples, n_patients, n_mutations), dtype=int)
-        for i in range(n_samples):
-            _, genotypes = pmhn.simulate_dataset(rng, n_points=n_patients, theta=thetas[i], mean_sampling_time=settings.mean_sampling_time)
-            genotype_matrices[i, ...] = genotypes
-
-        fig, _ = pmhn.plot_genotype_samples(genotype_matrices)
-        fig.savefig(str(output))
-
-
-def prepare_full_model(genotypes) -> pm.Model:
-    loglikelihood = pmhn.MHNLoglikelihood(data=genotypes, backend=pmhn.MHNCythonBackend())
-    model = pmhn.prior_regularized_horseshoe(n_mutations=genotypes.shape[1])
-
-    with model:
-        pm.Potential("loglikelihood", loglikelihood(model.theta))
-
-    return model
 
 
 rule mcmc_sample_one_chain:
