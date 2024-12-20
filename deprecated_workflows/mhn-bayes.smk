@@ -13,6 +13,11 @@ from pmhn import mhn
 import jax
 import jax.numpy as jnp
 
+import numpyro
+import numpyro.distributions as dist
+from numpyro.infer import MCMC, NUTS
+
+
 # --- Working directory ---
 workdir: "generated/mhn-bayes"
 
@@ -56,6 +61,7 @@ rule plot_theta_from_data:
         pmhn.plot_theta(theta, ax=ax)
         fig.tight_layout()
         fig.savefig(output.theta)
+
 
 rule plot_genotypes_from_data:
     input:
@@ -136,6 +142,7 @@ rule mcmc_assemble_chains:
         all_samples="{scenario}/mcmc-samples.nc"
     run:
         assemble_chains(input.chains, output.all_samples)
+
 
 rule smc_sample_one_chain:
     input:
