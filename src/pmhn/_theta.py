@@ -1,7 +1,25 @@
+import jax.numpy as jnp
 import numpy as np
+import numpyro.distributions as dist
 
 
-def construct_matrix(diag: np.ndarray, offdiag: np.ndarray) -> np.ndarray:
+def spike_and_slab(P, pi: float = 0.5, spike_std: float = 0.01, slab_std: float = 1.0):
+    """Spike and slab prior over a vector with P components.
+
+    Args:
+        pi: probability of the feature being active (sampled from the slab component)
+    """
+    mixture_dist = dist.Categorical(
+        probs=jnp.stack([pi * jnp.ones(P), (1 - pi) * jnp.ones(P)], axis=-1)
+    )
+    component_dist = dist.Normal(
+        loc=jnp.zeros((P, 2)),
+        scale=jnp.stack([slab_std * jnp.ones(P), spike_std * jnp.ones(P)], axis=-1),
+    )
+    return dist.MixtureSameFamily(mixture_dist, component_dist)
+
+
+def construct_matrix(diag: jnp.ndarray, offdiag: jnp.ndarray) -> jnp.ndarray:
     """Constructs a square matrix from diagonal and offdiagonal terms.
 
     Args:
@@ -19,22 +37,33 @@ def construct_matrix(diag: np.ndarray, offdiag: np.ndarray) -> np.ndarray:
     See Also:
         decompose_matrix, the inverse function.
     """
-    n = len(diag)
-    assert offdiag.shape == (n, n - 1)
+    n = diag.shape[0]
+    matrix = jnp.diag(diag)  # Shape: (n, n)
 
-    embedding = np.zeros((n, n), dtype=diag.dtype)
+    # Compute row indices: shape (n, 1) broadcasted to (n, n-1)
+    row_indices = jnp.arange(n).reshape(n, 1)
+    row_indices_broadcasted = jnp.broadcast_to(row_indices, (n, n - 1))
 
-    for i in range(n):
-        # Before the diagonal
-        if i > 0:
-            embedding[i, :i] = offdiag[i, :i]
-        # After the diagonal
-        if i < n - 1:
-            embedding[i, i + 1 :] = offdiag[i, i:]
+    # Compute column indices based on the row number
+    # For each row i, columns are [0, 1, ..., i-1, i+1, ..., n-1]
+    # This is achieved by:
+    # - For each row i, elements in offdiag[i] correspond to columns:
+    #   j < i => j
+    #   j >= i => j + 1
+    j_indices = jnp.arange(n - 1)
+    col_indices = jnp.where(
+        j_indices < row_indices, j_indices, j_indices + 1
+    )  # Shape: (n, n-1)
 
-    np.fill_diagonal(embedding, diag)
+    # Flatten the indices and offdiag for vectorized assignment
+    row_indices_flat = row_indices_broadcasted.flatten()  # Shape: (n*(n-1),)
+    col_indices_flat = col_indices.flatten()  # Shape: (n*(n-1),)
+    offdiag_flat = offdiag.flatten()  # Shape: (n*(n-1),)
 
-    return embedding
+    # Assign off-diagonal values
+    matrix = matrix.at[row_indices_flat, col_indices_flat].set(offdiag_flat)
+
+    return matrix
 
 
 def decompose_matrix(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -51,18 +80,16 @@ def decompose_matrix(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         construct_matrix, the inverse function.
     """
     n = matrix.shape[0]
-    assert matrix.shape == (n, n)
+    assert matrix.shape == (n, n), "Input matrix must be square."
 
-    diag = np.diag(matrix)
-    offdiag = np.zeros((n, n - 1), dtype=matrix.dtype)
+    # Extract the diagonal elements
+    diag = jnp.diag(matrix)
 
-    for i in range(n):
-        # Before the diagonal
-        if i > 0:
-            offdiag[i, :i] = matrix[i, :i]
-        # After the diagonal
-        if i < n - 1:
-            offdiag[i, i:] = matrix[i, i + 1 :]
+    # Create a boolean mask to exclude the diagonal elements
+    mask_offdiag = ~jnp.eye(n, dtype=bool)
+
+    # Apply the mask and reshape to (n, n-1)
+    offdiag = matrix[mask_offdiag].reshape(n, n - 1)
 
     return diag, offdiag
 

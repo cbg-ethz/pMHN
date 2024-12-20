@@ -1,5 +1,5 @@
+import pmhn._theta as theta
 import pmhn.mhn as mhn
-from pmhn._theta import construct_matrix, decompose_matrix, sample_spike_and_slab
 from pmhn._visualise import (
     plot_genotype_samples,
     plot_genotypes,
@@ -11,9 +11,7 @@ from pmhn._visualise import (
 
 __all__ = [
     "mhn",
-    "construct_matrix",
-    "decompose_matrix",
-    "sample_spike_and_slab",
+    "theta",
     "plot_genotypes",
     "plot_genotype_samples",
     "plot_theta",
