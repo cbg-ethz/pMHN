@@ -38,4 +38,5 @@ line-length = 88
 [tool.ruff]
 select = ["E", "F", "I001"]
 ignore = ["E721", "E731", "F722", "E501"]
+exclude = ["notebooks", "private"]
 
