@@ -1,5 +1,4 @@
 import pytest
-
 from pmhn._trees._interfaces import Tree
 from pmhn._trees._validate import validate_tree
 

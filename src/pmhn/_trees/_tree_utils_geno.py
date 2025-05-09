@@ -1,6 +1,7 @@
-from anytree import Node, LevelOrderGroupIter
 from itertools import combinations, product
 from typing import Optional
+
+from anytree import LevelOrderGroupIter, Node
 
 
 def all_combinations_of_elements(*lists):

@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from pmhn._simulate._jump_chain import generate_start_state, mutate, simulate_dataset
 
 

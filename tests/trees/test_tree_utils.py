@@ -1,5 +1,5 @@
-from pmhn._trees._tree_utils import create_all_subtrees, check_equality, bfs_compare
 from anytree import Node
+from pmhn._trees._tree_utils import bfs_compare, check_equality, create_all_subtrees
 
 
 def test_create_all_subtrees_simple():

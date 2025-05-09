@@ -1,7 +1,7 @@
 import numpy as np
+from anytree import LevelOrderGroupIter, Node
 
-from pmhn._trees._tree_utils import create_all_subtrees, bfs_compare
-from anytree import Node, LevelOrderGroupIter
+from pmhn._trees._tree_utils import bfs_compare, create_all_subtrees
 
 
 class TreeWrapper:

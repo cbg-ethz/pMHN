@@ -1,6 +1,7 @@
 import numpy as np
-from pmhn._trees._tree_utils_geno import create_mappings
 from anytree import Node
+
+from pmhn._trees._tree_utils_geno import create_mappings
 
 
 class TreeWrapperCode:
