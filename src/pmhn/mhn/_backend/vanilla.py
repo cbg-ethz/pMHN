@@ -341,7 +341,7 @@ def x_partial_Q_y(
     y: jnp.ndarray,
     state: jnp.ndarray,
 ) -> jnp.ndarray:
-    """This function computes x \partial Q y with \partial Q the Jacobian of Q w.r.t. all thetas
+    """This function computes x \\partial Q y with \\partial Q the Jacobian of Q w.r.t. all thetas
     efficiently using the shuffle trick (sic!).
 
     Args:
@@ -353,7 +353,7 @@ def x_partial_Q_y(
         state (np.ndarray): Binary state vector, representing the current sample's events.
 
     Returns:
-        np.ndarray: x \partial_(\Theta_{ij}) Q y for i, j = 1, ..., n+1
+        np.ndarray: x \\partial_(\\Theta_{ij}) Q y for i, j = 1, ..., n+1
     """
     n = log_theta.shape[0]
     val = jnp.zeros(shape=(n, n))
@@ -395,7 +395,7 @@ def gradient(
         p_0 (np.ndarray): Starting distribution
 
     Returns:
-        jnp.ndarray: \partial_theta (p_D^T log p_theta)
+        jnp.ndarray: \\partial_theta (p_D^T log p_theta)
     """
     p_theta = R_inv_vec(log_theta=log_theta, x=p_0, state=state)
     x = jnp.zeros_like(p_theta)

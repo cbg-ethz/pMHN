@@ -1,6 +1,7 @@
-from typing import Union, Sequence, Optional
-from anytree import Node
+from typing import Optional, Sequence, Union
+
 import numpy as np
+from anytree import Node
 
 
 def generate_valid_tree(

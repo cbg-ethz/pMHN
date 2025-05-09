@@ -1,7 +1,6 @@
 import numpy as np
-import pytest
-
 import pmhn._trees as trees
+import pytest
 
 
 def get_all_backends() -> list:

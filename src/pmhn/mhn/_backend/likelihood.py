@@ -180,7 +180,7 @@ def deriv_no_seed(
 def x_partial_Q_y(
     log_theta: jnp.ndarray, x: jnp.ndarray, y: jnp.ndarray, state: jnp.ndarray
 ) -> jnp.ndarray:
-    """This calculates x^T \partial Q(theta) y wrt. theta
+    """This calculates x^T \\partial Q(theta) y wrt. theta
 
     Args:
         log_theta (jnp.ndarray): Theta matrix with logarithmi entries
@@ -225,7 +225,7 @@ def x_partial_D_y(
     x: jnp.ndarray,
     y: jnp.ndarray,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
-    """This calculates x^T \partial D(d_p, d_m) y wrt. d_p and d_m
+    """This calculates x^T \\partial D(d_p, d_m) y wrt. d_p and d_m
 
     Args:
         log_d_m (jnp.ndarray): Log. effects of muts in PT on PT-diagnosis

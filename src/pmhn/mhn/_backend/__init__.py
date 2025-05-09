@@ -1,9 +1,9 @@
 """This subpackage is a modified version of the code
 (available on the MIT License terms, see below) from the
 
-https://github.com/cbg-ethz/metMHN 
+https://github.com/cbg-ethz/metMHN
 
-package. We are grateful for the authors for creating their package. 
+package. We are grateful for the authors for creating their package.
 
 
 MIT License
