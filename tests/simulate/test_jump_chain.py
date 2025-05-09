@@ -1,6 +1,10 @@
 import numpy as np
 import pytest
-from pmhn._simulate._jump_chain import generate_start_state, mutate, simulate_dataset
+from pmhn.mhn._simulate._jump_chain import (
+    generate_start_state,
+    mutate,
+    simulate_dataset,
+)
 
 
 @pytest.mark.parametrize("n", [3, 5])
