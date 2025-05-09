@@ -121,7 +121,7 @@ def _construct_log_neg_Q_diag(
 
 
 def _log_neg_Q_to_log_V(
-    log_neg_Q: Float[Array, " n_subtrees"]
+    log_neg_Q: Float[Array, " n_subtrees"],
 ) -> Float[Array, " n_subtrees"]:
     """Converts the log(-Q_{ii}) entries to log(V_{ii}) entries.
 
