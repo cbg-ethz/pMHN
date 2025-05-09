@@ -1,6 +1,86 @@
 import jax.numpy as jnp
 import numpy as np
 import numpyro.distributions as dist
+from jax import random
+from numpyro.distributions import constraints
+
+
+class SpikeAndSlab(dist.Distribution):
+    arg_constraints = {
+        "w": constraints.unit_interval,
+        "scale_spike": constraints.positive,
+        "scale_slab": constraints.positive,
+        "features": constraints.nonnegative_integer,
+    }
+    support = constraints.real_vector
+    # no .has_rsample because sample is not reparameterized in JAX sense
+
+    def __init__(
+        self,
+        w: float,
+        scale_spike: float,
+        scale_slab: float,
+        features: int,
+        validate_args=None,
+    ):
+        """
+        w:   probability of slab component (active)
+        scale_spike: std of spike
+        scale_slab:  std of slab
+        features:    dimensionality (n_features)
+        """
+        self.w = w
+        self.scale_spike = scale_spike
+        self.scale_slab = scale_slab
+        self.features = features
+        batch_shape = jnp.shape(w)
+        event_shape = (features,)
+
+        self._spike_dist = dist.Independent(
+            dist.Normal(jnp.zeros(features), scale_spike), 1
+        )
+        print(self._spike_dist.batch_shape, self._spike_dist.event_shape)
+        self._slab_dist = dist.Independent(
+            dist.Normal(jnp.zeros(features), scale_slab), 1
+        )
+
+        super().__init__(batch_shape, event_shape, validate_args=validate_args)
+
+    def sample(self, key, sample_shape=()):
+        """
+        Draws x ~ mixture, but does NOT expose the indicators to NumPyro.
+        """
+        # total shape = sample_shape + batch_shape + event_shape
+        shape = sample_shape + self.batch_shape + (self.features,)
+        # draw indicators z_ij ∈ {0,1}
+        key_z, key_eps = random.split(key)
+        z = random.bernoulli(key_z, p=self.w, shape=shape)
+        # draw standard normals
+        eps = random.normal(key_eps, shape=shape)
+        # where z==1 use slab, else use spike
+        return jnp.where(z, eps * self.scale_slab, eps * self.scale_spike)
+
+    def log_prob(self, x):
+        """
+        log p(x) = sum_i log[ w * N(0,scale_slab^2)(x_i)
+                           + (1-w) * N(0,scale_spike^2)(x_i) ]
+        """
+        # shape: batch_shape + (features,)
+        logp_slab = self._slab_dist.log_prob(x) + jnp.log(self.w)
+        logp_spike = self._spike_dist.log_prob(x) + jnp.log1p(-self.w)
+        # log-sum-exp over the two mixture components, then sum over features
+        log_mix = jnp.logaddexp(logp_spike, logp_slab)
+        return log_mix
+
+    @property
+    def mean(self):
+        return jnp.zeros(self.batch_shape + (self.features,))
+
+    @property
+    def variance(self):
+        # Var[X] = w*σ_slab^2 + (1-w)*σ_spike^2
+        v = self.w * self.scale_slab**2 + (1 - self.w) * self.scale_spike**2
+        return jnp.broadcast_to(v, self.batch_shape + (self.features,))
 
 
 def spike_and_slab(P, pi: float = 0.5, spike_std: float = 0.01, slab_std: float = 1.0):
