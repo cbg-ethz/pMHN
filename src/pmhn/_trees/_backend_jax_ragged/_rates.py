@@ -13,15 +13,22 @@ def segment_logsumexp(
     segment_ids: Int[Array, " n"],
     num_segments: int,
 ) -> Float[Array, " num_segments"]:
-    """Segment-wise logsumexp."""
+    """Segment-wise logsumexp robust to all--inf or empty segments."""
     max_per_segment = jax.ops.segment_max(
         data, segment_ids=segment_ids, num_segments=num_segments
     )
-    adjusted_values = jnp.exp(data - max_per_segment[segment_ids])
+
+    finite_mask = jnp.isfinite(max_per_segment)
+    safe_max_per_segment = jnp.where(finite_mask, max_per_segment, 0.0)
+
+    adjusted_values = jnp.exp(data - safe_max_per_segment[segment_ids])
+    adjusted_values = jnp.where(jnp.isfinite(data), adjusted_values, 0.0)
+
     summed_exp_values = jax.ops.segment_sum(
         adjusted_values, segment_ids=segment_ids, num_segments=num_segments
     )
-    return jnp.log(summed_exp_values) + max_per_segment
+    out = jnp.log(summed_exp_values) + safe_max_per_segment
+    return jnp.where(finite_mask, out, -jnp.inf)
 
 
 def _construct_path_log_transition_rates(

@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 import numpy as np
 import numpy.testing as npt
@@ -99,3 +100,43 @@ def test_construct_log_magic_matrix_parity_with_padded_backend(
     )
 
     npt.assert_allclose(magic_ragged.to_dense(), magic_padded.to_dense(), atol=1e-6)
+
+
+def test_segment_logsumexp_safe_for_all_inf_and_empty_segments() -> None:
+    data = jnp.asarray([-jnp.inf, -jnp.inf, 0.0, -3.0])
+    segment_ids = jnp.asarray([0, 0, 2, 2])
+
+    obtained = rates_ragged.segment_logsumexp(
+        data=data,
+        segment_ids=segment_ids,
+        num_segments=4,
+    )
+
+    expected = jnp.asarray(
+        [
+            -jnp.inf,  # all -inf
+            -jnp.inf,  # empty segment
+            jnp.log(jnp.exp(0.0) + jnp.exp(-3.0)),
+            -jnp.inf,  # empty segment
+        ]
+    )
+
+    assert not jnp.any(jnp.isnan(obtained))
+    npt.assert_allclose(obtained, expected, atol=1e-6)
+
+
+def test_segment_logsumexp_gradients_are_finite() -> None:
+    segment_ids = jnp.asarray([0, 0, 1, 2])
+
+    def objective(x):
+        data = jnp.asarray([x[0], x[1], -jnp.inf, x[2]])
+        y = rates_ragged.segment_logsumexp(
+            data=data,
+            segment_ids=segment_ids,
+            num_segments=3,
+        )
+        return jnp.where(jnp.isfinite(y), y, 0.0).sum()
+
+    x = jnp.asarray([-1000.0, -1001.0, -999.0])
+    g = jax.grad(objective)(x)
+    assert jnp.all(jnp.isfinite(g))

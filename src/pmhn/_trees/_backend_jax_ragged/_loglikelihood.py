@@ -1,8 +1,10 @@
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from pmhn._trees._backend_jax._solver import logprob_forward_substitution
 from pmhn._trees._backend_jax_ragged._rates import _construct_log_magic_matrix
+from pmhn._trees._backend_jax_ragged._solver import (
+    logprob_forward_substitution_layerwise,
+)
 from pmhn._trees._backend_jax_ragged._wrapper import RaggedTree
 
 
@@ -18,7 +20,11 @@ def loglikelihood(
         omega=omega,
         log_tau=log_tau,
     )
-    log_probs = logprob_forward_substitution(log_magic)
+    log_probs = logprob_forward_substitution_layerwise(
+        log_magic=log_magic,
+        node_layer=tree.node_layer,
+        layer_ptr=tree.layer_ptr,
+    )
     return log_probs[-1]
 
 
