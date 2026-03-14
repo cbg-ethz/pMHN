@@ -14,6 +14,7 @@ class RaggedPaths(NamedTuple):
     """Ragged representation of a collection of mutation trajectories."""
 
     events_flat: Int[Array, " n_events"]
+    event_path_id: Int[Array, " n_events"]
     path_ptr: Int[Array, " n_paths_plus_one"]
     path_last_event: Int[Array, " n_paths"]
 
@@ -136,6 +137,16 @@ def wrap_tree_ragged(tree: Node, n_genes: int) -> tuple[RaggedTree, list[Node]]:
     wrapped = RaggedTree(
         paths=RaggedPaths(
             events_flat=jnp.asarray(events_flat, dtype=int),
+            event_path_id=jnp.asarray(
+                [
+                    path_id
+                    for path_id, (start, end) in enumerate(
+                        zip(path_ptr[:-1], path_ptr[1:])
+                    )
+                    for _ in range(end - start)
+                ],
+                dtype=int,
+            ),
             path_ptr=jnp.asarray(path_ptr, dtype=int),
             path_last_event=jnp.asarray(path_last_event, dtype=int),
         ),

@@ -101,14 +101,19 @@ def test_wrap_tree_ragged_pointer_and_last_event_consistency() -> None:
 
     ptr = np.asarray(wrapped.paths.path_ptr)
     events = np.asarray(wrapped.paths.events_flat)
+    event_path_id = np.asarray(wrapped.paths.event_path_id)
     last = np.asarray(wrapped.paths.path_last_event)
 
     assert ptr[0] == 0
     assert ptr[-1] == events.shape[0]
     assert np.all(ptr[1:] > ptr[:-1])
+    assert event_path_id.shape[0] == events.shape[0]
     assert wrapped.paths.n_paths == last.shape[0]
 
     for path_id in range(wrapped.paths.n_paths):
         decoded = _decode_path(wrapped, path_id)
         assert len(decoded) > 0
         assert decoded[-1] == int(last[path_id])
+        start = int(ptr[path_id])
+        end = int(ptr[path_id + 1])
+        assert np.all(event_path_id[start:end] == path_id)
