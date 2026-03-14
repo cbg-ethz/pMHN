@@ -1,5 +1,7 @@
 """Rate construction for ragged tree representation."""
 
+from collections.abc import Callable
+
 import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float, Int
@@ -44,6 +46,29 @@ def _construct_path_log_transition_rates(
     return jax.ops.segment_sum(
         per_event, segment_ids=path_ids, num_segments=paths.n_paths
     )
+
+
+def _construct_path_lineage_multihot(
+    paths: RaggedPaths,
+    n_genes: int,
+) -> Float[Array, " n_paths G"]:
+    event_one_hot = jax.nn.one_hot(paths.events_flat - 1, n_genes, dtype=jnp.float32)
+    counts = jax.ops.segment_sum(
+        event_one_hot,
+        segment_ids=paths.event_path_id,
+        num_segments=paths.n_paths,
+    )
+    return jnp.clip(counts, 0.0, 1.0)
+
+
+def _construct_path_log_transition_rates_model(
+    paths: RaggedPaths,
+    n_genes: int,
+    log_rate_model: Callable[[Float[Array, " G"], Int[Array, ""]], Float],
+) -> Float[Array, " n_paths"]:
+    """Computes transition log-rates for all paths using a generic model."""
+    lineage_multihot = _construct_path_lineage_multihot(paths=paths, n_genes=n_genes)
+    return jax.vmap(log_rate_model)(lineage_multihot, paths.path_last_event)
 
 
 def _construct_path_log_exit_rates(
@@ -106,6 +131,46 @@ def _construct_log_magic_matrix(
     """Constructs log-magic matrix from ragged tree representation."""
     path_log_transition_rates = _construct_path_log_transition_rates(
         paths=tree.paths, theta=theta
+    )
+    path_log_exit_rates = _construct_path_log_exit_rates(paths=tree.paths, omega=omega)
+
+    log_neg_Q_diag = _construct_log_neg_Q_diag(
+        tree=tree, path_log_transition_rates=path_log_transition_rates
+    )
+    log_Q_offdiag = _construct_log_Q_offdiag(
+        tree=tree, path_log_transition_rates=path_log_transition_rates
+    )
+    log_U = _construct_log_U(
+        tree=tree,
+        path_log_exit_rates=path_log_exit_rates,
+        log_tau=log_tau,
+    )
+
+    log_neg_Q_diag_adjusted = log_neg_Q_diag - log_U
+    log_Q_offdiag_adjusted = Values(
+        start=log_Q_offdiag.start,
+        end=log_Q_offdiag.end,
+        value=log_Q_offdiag.value - log_U[log_Q_offdiag.start],
+    )
+
+    return COOMatrix(
+        diagonal=_log_neg_Q_to_log_V(log_neg_Q_diag_adjusted),
+        offdiagonal=log_Q_offdiag_adjusted,
+        fill_value=-jnp.inf,
+    )
+
+
+def _construct_log_magic_matrix_with_rate_model(
+    tree: RaggedTree,
+    omega: Float[Array, " G"],
+    log_tau: float | Float,
+    log_rate_model: Callable[[Float[Array, " G"], Int[Array, ""]], Float],
+) -> COOMatrix:
+    """Constructs log-magic matrix from a generic log-rate model."""
+    path_log_transition_rates = _construct_path_log_transition_rates_model(
+        paths=tree.paths,
+        n_genes=tree.n_genes,
+        log_rate_model=log_rate_model,
     )
     path_log_exit_rates = _construct_path_log_exit_rates(paths=tree.paths, omega=omega)
 
